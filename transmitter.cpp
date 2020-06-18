@@ -1,32 +1,24 @@
+/*
+* Arduino Wireless Communication Tutorial
+*     Example 1 - Transmitter Code
+*                
+* by Dejan Nedelkovski, www.HowToMechatronics.com
+* 
+* Library: TMRh20/RF24, https://github.com/tmrh20/RF24/
+*/
 #include <SPI.h>
-#include "RF24.h"
-
-RF24 transmitter(7, 8);
-byte addresses[][6] = {"0"};
-
-struct package {
-  int id{1};
-  char text[100] = "Text to transmit";
-} Package;
-
-Package data;
-
+#include <nRF24L01.h>
+#include <RF24.h>
+RF24 radio(7, 8); // CE, CSN
+const byte address[6] = "00001";
 void setup() {
-  Serial.begin(115200);
-  delay(1000);
-  transmitter.begin();
-  transmitter.setChannel(115);
-  transmitter.setPALevel(RF24_PA_MAX);
-  transmitter.setDataRate(RF24_250KBPS);
-  transmitter.openWritingPipe(addresses[0]);
-  delay(1000);
+  radio.begin();
+  radio.openWritingPipe(address);
+  radio.setPALevel(RF24_PA_MIN);
+  radio.stopListening();
 }
-
 void loop() {
-  Serial.print("\nPackage:");
-  Serial.print(data.id);
-  Serial.print("\n");
-  Serial.println(data.text);
-  data.id++;
+  const char text[] = "It's working";
+  radio.write(&text, sizeof(text));
   delay(1000);
 }
