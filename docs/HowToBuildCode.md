@@ -20,3 +20,14 @@ following:
   ```
   You should see `Hello World!` being printed every second. To exit the picocom
   terminal, press Ctrl-a Ctrl-x.
+#### WSLtty
+WSLtty does offer support for communicating with hardware through serial ports.
+WSL automatically maps the `COM<N>` ports on Windows to `/dev/ttyS<N>` ports. 
+For example, `COM7` would be mapped to `/dev/ttyS7`. You can check which `COM`
+port is being used by going into `Device Manager` and checking the 
+`Ports (COM & LPT)` header in Windows. If the port being used is `COM7`, then
+you must run:
+```
+sudo chmod 666 /dev/ttyS7
+```
+then follow the instructions for Linux. Check [this](https://docs.microsoft.com/en-us/archive/blogs/wsl/serial-support-on-the-windows-subsystem-for-linux) for more information.
