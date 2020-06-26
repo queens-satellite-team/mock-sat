@@ -16,4 +16,4 @@ project(MocSat C CXX)
 print_board_list()
 print_programmer_list()
 
-add_subdirectory(test)   #add the example directory into build
+add_subdirectory(firmware)   #add the example directory into build
