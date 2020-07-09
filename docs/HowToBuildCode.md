@@ -31,3 +31,4 @@ you must run:
 sudo chmod 666 /dev/ttyS7
 ```
 then follow the instructions for Linux. Check [this](https://docs.microsoft.com/en-us/archive/blogs/wsl/serial-support-on-the-windows-subsystem-for-linux) for more information.
+
