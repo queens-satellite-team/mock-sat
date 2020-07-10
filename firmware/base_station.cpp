@@ -1,22 +1,17 @@
-#include <Arduino.h>
-#include <SPI.h>
-#include <nRF24L01.h>
-#include <RF24.h>
-RF24 radio(7, 8); // CE, CSN
-const byte address[6] = "00001";
+#include <Wire.h>
+// Include the required Wire library for I2C<br>#include <Wire.h>
+int LED = 13;
 void setup() {
-    Serial.begin(115200);
-    radio.begin();
-    radio.openReadingPipe(0, address);
-    radio.setPALevel(RF24_PA_MAX);
-    radio.startListening();
+    Serial.begin(9600);
+    // Define the LED pin as Output
+    pinMode (LED, OUTPUT);
+    // Start the I2C Bus as Slave on address 9
+    Wire.begin(9);
+    // Attach a function to trigger when something is received.
+    Wire.onReceive(receiveEvent);
 }
-void loop() {
-    if (radio.available()) {
-        char text[32];
-        radio.read(&text, sizeof(text));
-        Serial.print(text);
-    } else {
-       delay(100);
-    }
+void receiveEvent(int bytes) {
+    char x = Wire.read();    // read one character from the I2C
+    Serial.println(x);
 }
+void loop() {}
