@@ -70,28 +70,28 @@ def detumble(): #could be changed simply to apply magnetorquers instead of wheel
         M.ChangeDutyCycle(
 """
 for x in range(20):
-	VEL = vel()
+VEL = vel()
 #        if VEL > VEL_TOL:
 #               detumble()
 
-        EUL = eul()
-        DIFF = DES_EUL - EUL
-        if DIFF < EUL_TOL:
-            time.sleep(0.01)
-            continue
+	EUL = eul()
+	DIFF = DES_EUL - EUL
+	if DIFF < EUL_TOL:
+		time.sleep(0.01)
+		continue
 
-        if abs(DIFF) > 270:
-                DIFF = (-1)*abs(abs(DIFF) - 360)*DIFF/abs(DIFF) 
-        
-        print('P control DIFF')
-        print(DIFF)
-        time.sleep(1)
+	if abs(DIFF) > 270:
+		DIFF = (-1)*abs(abs(DIFF) - 360)*DIFF/abs(DIFF)
 
-        DIFF = DIFF + VEL*0.01*180/3.14
+	print('P control DIFF')
+	print(DIFF)
+	time.sleep(1)
 
-        print('PI control DIFF')
-        print(DIFF)
-        time.sleep(1)
+	DIFF = DIFF + VEL*0.01*180/3.14
+
+	print('PI control DIFF')
+	print(DIFF)
+	time.sleep(1)
 
 """
         if DIFF > 0:
@@ -102,7 +102,7 @@ for x in range(20):
         DUTY = 100 - abs(
 """
 
-        time.sleep(1)
+	time.sleep(1)
 
 M.stop()
 IO.cleanup()
