@@ -60,64 +60,61 @@ def vel(): #returns angular velocity in rads/sec
 		VEL = vel()
 	return VEL
 
-#def detumble(): #could be changed simply to apply magnetorquers instead of wheels
-#        VEL = vel()
-#        if VEL > 0:
-#                IO.output(DIR_CTRL, IO.HIGH)
-#        else:
-#                IO.output(DIR_CTRL, IO.LOW)
-#
-#        M.ChangeDutyCycle(
+#def detumble():
 
-for x in range(500):
-	VEL = vel()
-#        if VEL > TOL_VEL:
-#               detumble()
+while True:
+	try:
+		VEL = vel()
+	#        if VEL > TOL_VEL:
+	#               detumble()
+		EUL = eul()
+		DIFF = DES_EUL - EUL
+		if abs(DIFF) < TOL_EUL:
+			time.sleep(0.01)
+			continue
 
-	EUL = eul()
-	DIFF = DES_EUL - EUL
-	if abs(DIFF) < TOL_EUL:
+		if abs(DIFF) > 270:
+			DIFF = (-1)*abs(abs(DIFF) - 360)*DIFF/abs(DIFF)
+
+	#	print('P control DIFF')
+	#	print(DIFF/2)
+
+		DIFF = DIFF/3 + (VEL*180/3.14)/6
+
+	#	print('PI control DIFF')
+	#	print(DIFF)
+
+		#define direction
+		if DIFF > 0:
+			IO.output(DIR_CTRL, IO.LOW)
+		elif DIFF < 0:
+			IO.output(DIR_CTRL, IO.HIGH)
+
+		DUTY = int(100 - abs(DIFF)) #converty to duty percentage
+
+		if DUTY < 10:
+			DUTY = 10
+		elif DUTY > 100: #no vel
+			DUTY = 100
+
+		DUTY_PREV = DUTY
+
+		print(EUL)
+	#	print(DIFF)
+		print(DUTY)
+
+		M.ChangeDutyCycle(DUTY)
 		time.sleep(0.01)
+
+	except:
+		print('Registered Interrupt')
+		DES_EUL = int(input('Input new desired orientation (999 to exit operation):'))
+		if DES_EUL == 999:
+			M.stop()
+			IO.cleanup()
+			exit()
+
 		continue
-
-	if abs(DIFF) > 270:
-		DIFF = (-1)*abs(abs(DIFF) - 360)*DIFF/abs(DIFF)
-
-#	print('P control DIFF')
-#	print(DIFF/2)
-
-	DIFF = DIFF/3 + (VEL*180/3.14)/6
-
-#	print('PI control DIFF')
-#	print(DIFF)
-
-	#define direction
-	if DIFF > 0:
-		IO.output(DIR_CTRL, IO.LOW)
-	elif DIFF < 0:
-		IO.output(DIR_CTRL, IO.HIGH)
-
-	DUTY = 100 - abs(DIFF) #converty to duty percentage
-
-#	if abs(DUTY - DUTY_PREV) > 10: #max acc
-#		DUTY = DUTY_PREV + 10*(DUTY_PREV - DUTY)/abs(DUTY_PREV - DUTY)
-
-#	if abs(DUTY - DUTY_PREV) < 2 and DUTY != 100 and DUTY != DUTY_PREV: #min acc
-#		DUTY = DUTY_PREV + 2*(DUTY_PREV - DUTY)/abs(DUTY_PREV - DUTY)
-
-	if DUTY < 10: #max vel
-		DUTY = 10
-	elif DUTY > 100: #no vel
-		DUTY = 100
-
-	DUTY_PREV = DUTY
-
-	print(EUL)
-	print(DIFF)
-	print(DUTY)
-
-	M.ChangeDutyCycle(int(DUTY))
-	time.sleep(0.01)
 
 M.stop()
 IO.cleanup()
