@@ -45,7 +45,7 @@ print('Desired angle is: {}' .format(DES_EUL))
 def eul(): #returns orientation in degrees
 	try:
 		EUL = int(sensor.euler[0])
-		if EUL > 360:
+		if abs(EUL) > 360:
 			EUL = EUL%360
 	except:
 		print('ERROR IN EULER ANGLE READ')
@@ -79,7 +79,7 @@ while True:
 	#	print('P control DIFF')
 	#	print(DIFF/2)
 
-		DIFF = DIFF/3 + (VEL*180/3.14)/6
+		DIFF = DIFF/2 + (VEL*180/3.14)/6
 
 	#	print('PI control DIFF')
 	#	print(DIFF)
