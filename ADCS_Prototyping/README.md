@@ -1,3 +1,8 @@
+The following scripts rely on:
+-the RPi.GPIO library for python control of raspi IO pins (often comes pre-installed on raspi)
+-the adafruit_bno055 library (for reading BNO055 sensor)
+-all other libraries should be installed with python3
+
 `BNO055_TEST.py` 
 -tests the i2c connection between the raspi and the BNO055 sensor (currently tested with DFRobot's Gravity BNO055 sensor)
 
