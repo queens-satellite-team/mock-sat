@@ -1,13 +1,15 @@
 from time import sleep
 import io
 import serial
-ser = serial.Serial('/dev/ttyS8', 115200)
-
-bytes = io.BytesIO(open('../img/sent.jpg', 'rb').read())
-
-arduino_serial_buffer_size = 64 # bytes
-buffers = list(zip(*[iter(bytes.getvalue())]*arduino_serial_buffer_size))
-
-for buffer in buffers:
-    for char in buffer:
-        ser.write(str(char))
+def main():
+    ser = serial.Serial('/dev/ttyS8', 115200)
+    with open('../img/sent.jpg', 'rb') as image:
+        buffer_size = 32 #bytes
+        while True:
+            buffer = image.read(buffer_size)
+            if not buffer: break
+            ser.write(buffer)
+            sleep(0.2)
+            print(buffer)
+if __name__ == '__main__':
+    main()

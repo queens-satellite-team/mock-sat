@@ -11,6 +11,6 @@ image_buffer = ''
 count = 0
 with open('../img/received.jpg', 'wb') as file:
     while True:
-        byte = ser.readline()
+        byte = ser.read()
         print(byte)
         file.write(byte)

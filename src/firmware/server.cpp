@@ -2,8 +2,7 @@
 #include <Wire.h>
 
 void setup() {
-  Serial.begin(9600);
-  Serial.println("Ready");
+  Serial.begin(115200);
   Wire.begin();
 }
 void loop() {
@@ -13,7 +12,5 @@ void loop() {
     Wire.beginTransmission(9);
     Wire.write(inByte);
     Wire.endTransmission();
-    Serial.println(inByte);
   }
-  delay(100);
 }
