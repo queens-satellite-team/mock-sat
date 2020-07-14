@@ -9,7 +9,7 @@ def main():
             buffer = image.read(buffer_size)
             if not buffer: break
             ser.write(buffer)
-            sleep(0.2)
             print(buffer)
+            sleep(1)
 if __name__ == '__main__':
     main()

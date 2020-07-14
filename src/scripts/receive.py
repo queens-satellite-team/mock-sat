@@ -6,9 +6,7 @@ import sys, struct
 from PIL import Image
 
 ser = serial.Serial('/dev/ttyS9', 115200)
-
-image_buffer = ''
-count = 0
+ser.flush()
 with open('../img/received.jpg', 'wb') as file:
     while True:
         byte = ser.read()
