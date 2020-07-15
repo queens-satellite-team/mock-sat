@@ -38,3 +38,12 @@ The following hardware is required:
 
 Meeting notes, logistical documents and other files that may not be in this repository are kept on a
 [Google Drive](https://drive.google.com/drive/folders/1PjCpiJ1GjcGLUgqpvl0FE0fzke4_DoX0?usp=sharinghttps://www.google.com). The drive has public view access. If you are a member of QSAT and would like full edit access, please request access on the drive or send an email to joshua.wade@queensu.ca. Or just message me on facebook or something. 
+
+## Repository Style Guidelines
+In order to have consistency in the repository we are following the [Google
+style guidelines](https://github.com/google/styleguide). The repository is 
+primarily [C++](https://google.github.io/styleguide/cppguide.html) and 
+[Python](https://google.github.io/styleguide/pyguide.html) but another relevant
+style guideline is the [filetypes and names](https://developers.google.com/style/filenames).
+If languages other than this are introduced into the repository, please consult
+the associated style guideline and adhere to it.
