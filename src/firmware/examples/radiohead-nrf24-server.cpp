@@ -1,8 +1,10 @@
 #include <Arduino.h>
 #include <SPI.h>
-#include <RH_NRF24.h>
+#include <RadioHead.h>
+#include <RadioHead/RHGenericSPI.h>
+#include <RadioHead/RH_NRF24.h>
 
-NH_NRF24 nrf24;
+RH_NRF24 nrf24;
 
 void setup() {
   Serial.begin(9600);

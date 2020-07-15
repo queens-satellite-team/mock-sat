@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <SPI.h>
-#include <RH_NRF24.h>
+#include <RadioHead.h>
+#include <RadioHead/RHGenericSPI.h>
+#include <RadioHead/RH_NRF24.h>
 
 RH_NRF24 nrf24;
 
@@ -9,7 +11,7 @@ void setup() {
   while (!Serial);
   if (!nrf24.init()) Serial.println("init failed");
   if (!nrf24.setChannel(1)) Serial.println("setChannel failed");
-  if (!nrf24.setRF(NH_RF24::DataRate2Mbps, RH_NRF24::TransmitPower0dBm))
+  if (!nrf24.setRF(RH_NRF24::DataRate2Mbps, RH_NRF24::TransmitPower0dBm))
     Serial.println("setRF failed");
 }
 
