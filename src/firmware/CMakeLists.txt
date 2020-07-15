@@ -1,3 +1,5 @@
+add_subdirectory(examples)
+
 generate_arduino_firmware(server
     SKETCH server.cpp
     PORT /dev/ttyS8
