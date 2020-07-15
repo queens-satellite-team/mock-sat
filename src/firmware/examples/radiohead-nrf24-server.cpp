@@ -4,7 +4,7 @@
 #include <RadioHead/RHGenericSPI.h>
 #include <RadioHead/RH_NRF24.h>
 
-RH_NRF24 nrf24;
+RH_NRF24 nrf24(8, 53);
 
 void setup() {
   Serial.begin(9600);
@@ -17,6 +17,7 @@ void setup() {
 
 void loop() {
   if (nrf24.available()) {
+    Serial.println("nrf24 is available");
     uint8_t buf[RH_NRF24_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(buf);
     if (nrf24.recv(buf, &len)) {

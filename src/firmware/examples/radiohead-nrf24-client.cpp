@@ -4,7 +4,7 @@
 #include <RadioHead/RHGenericSPI.h>
 #include <RadioHead/RH_NRF24.h>
 
-RH_NRF24 nrf24;
+RH_NRF24 nrf24(8, 53);
 
 void setup() {
   Serial.begin(9600);
