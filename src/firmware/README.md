@@ -14,6 +14,7 @@ make <name of executable>-serial
 ```
 To use the above command you must have [Picocom](https://linux.die.net/man/8/picocom)
 installed. 
+
 ## Debugging
 The `make <name of executable>-upload` command often fails with the dreaded:
 ```
@@ -30,6 +31,7 @@ If you are developing on Windows using WSLtty, the serial port can be finicky.
 I would suggest following these [instructions](https://docs.microsoft.com/en-us/archive/blogs/wsl/serial-support-on-the-windows-subsystem-for-linux) and then uploading the "Hello World" serial writing example
 using the Arduino IDE. Then you can confirm that the serial port is activated
 and configured correctly. After that you should be able to build.
+
 ## Serial Monitoring
 It can be useful to open a serial monitor. Since Arduino CMake requires Picocom,
 it makes sense to use that. Modify the following command for your needs:
