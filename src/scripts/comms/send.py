@@ -1,31 +1,22 @@
-from time import sleep
-import io
 import serial
-def main():
-    ser = serial.Serial('/dev/ttyS8', 9600)
-    while True:
-        if ser.readline() == 'send\r\n':
-            with open('../img/sent.jpg', 'rb') as image:
-                buffer_size = 28 #bytes
-                while True:
-                    buffer = image.read(buffer_size)
-                    if not buffer: break
-                    ser.write(buffer)
-                    print(buffer)
-                    while (ser.readline() != 'ack\r\n'):
-                        sleep(0.1)
-                    sleep(0.4)
-                    if ser.readline() == 'end\r\n': break
+from time import sleep
+def checksum(buffer):
+    return chr(sum([ord(c) for c in buffer])/256)
 
-    '''
-        with open('../img/sent.jpg', 'rb') as image:
-            buffer_size = 32 #bytes
-            while True:
-                buffer = image.read(buffer_size)
-                if not buffer: break
-                ser.write(buffer)
-                print(buffer)
-                sleep(1)
-    '''
+def main():
+    with serial.Serial('/dev/ttyS9', 9600) as ser:
+        start = b'0xC0\n'
+        while True:
+            if ser.readline() == start:
+                print("Start transmission")
+                msg = b'0xC0\n'
+                buffer = b'bytes\n'
+                msg += buffer + checksum(buffer) + b'\n'
+                serial.write(msg)
+                resend = b'0xC8\n'
+                if ser.readline() == resend:
+                    print("Not received")
+
+
 if __name__ == '__main__':
     main()

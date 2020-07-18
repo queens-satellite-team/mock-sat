@@ -1,14 +1,23 @@
-from time import sleep
-from io import BytesIO
-import io
 import serial
-import sys, struct
-from PIL import Image
+from time import sleep
+def checksum(buffer):
+    return chr(sum([ord(c) for c in buffer])/256)
 
-ser = serial.Serial('/dev/ttyS9', 115200)
-ser.flush()
-with open('../img/received.jpg', 'wb') as file:
-    while True:
-        byte = ser.read()
-        print(byte)
-        file.write(byte)
+def main():
+    with serial.Serial('/dev/ttyS8', 9600) as ser:
+        start = b'0xC0\n'
+        ser.write(start)
+        if ser.readline() == start:
+            print("Receiving bytes")
+            buffer = ser.readline()
+            check1 = ser.readline()
+            check2 = checksum(buffer)
+            if check1 != check2:
+                resend = b'0xC8\n'
+                ser.write(resend)
+            else:
+                print(buffer)
+
+
+if __name__ == '__main__':
+    main()
