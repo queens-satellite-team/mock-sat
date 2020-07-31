@@ -1,3 +1,19 @@
+/*
+ * \brief Transmit bytes from serial to NRF24 transceiver, transmit bytes from NRF24
+ * transceiver to serial.
+ *
+ * Read bytes from serial and append them to a data buffer until:
+ *  a) No more bytes are in the serial port (Serial.available() == 0)
+ *  b) The number of bytes in the data buffer is equal to NRF24 max message
+ *     length.
+ * If b) send the data buffer to the NRF24 to transmit, and continue to read
+ * from serial until a) or b) is triggered again.
+ * If a) send the data buffer to the NRF24 to transmit. Then check the NRF24
+ * receive buffer to see if any bytes have been received. If they have transmit
+ * each byte over serial.
+ *
+ * This code can be used for both the transmitter and receiver Arduinos.
+ */
 #include <Arduino.h>
 #include <SPI.h>
 #include <RadioHead.h>
