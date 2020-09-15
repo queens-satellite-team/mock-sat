@@ -2,8 +2,8 @@ import serial
 import time
 import base64
 
-startMarker = '<'
-endMarker = '>'
+startMarker = "<"
+endMarker = ">"
 dataStarted = False
 dataBuf = ""
 img_string = ""
@@ -14,10 +14,12 @@ nchars = 16720
 
 
 def setupSerial(baudRate, serialPortName):
-    
+
     global serialPort
 
-    serialPort = serial.Serial(port=serialPortName, baudrate=baudRate, timeout=0, rtscts=True)
+    serialPort = serial.Serial(
+        port=serialPortName, baudrate=baudRate, timeout=0, rtscts=True
+    )
 
     print("Serial Port " + serialPortName + " opened. Baudrate " + str(baudRate))
 
@@ -32,7 +34,7 @@ def waitForArduino():
     while msg.find("Arduino is ready") == -1:
         msg = recvLikeArduino()
         if not (msg == "XXX"):
-            print(msg)  
+            print(msg)
 
 
 def recvLikeArduino():
@@ -59,7 +61,7 @@ def recvLikeArduino():
             return dataBuf
         else:
             return "XXX"
-        
+
 
 def sendToArduino(stringToSend):
 
@@ -73,25 +75,28 @@ def sendToArduino(stringToSend):
 
 
 def stringToImage(stringToDecode):
-    
+
     img_bytes = stringToDecode.encode("utf-8")
     img_64_decoded = base64.b64decode(img_bytes)
 
-    with open(outfile, mode = "wb") as output:
+    with open(outfile, mode="wb") as output:
         output.write(img_64_decoded)
- 
+
+
 def main():
     setupSerial(115200, portname)
 
     global img_string
 
+    # nchars is hardcoded in for now
+    # must determine another termination condition for knowing when to end the receive session
     while len(img_string) != nchars:
         arduinoReply = recvLikeArduino()
         if not (arduinoReply == "XXX"):
             img_string = img_string + arduinoReply
-        
+
     stringToImage(img_string)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
