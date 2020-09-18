@@ -8,7 +8,7 @@ A basic program that ping-pongs a character to the arduino. Used to initially te
 
 ## pySerial_String
 
-Fully functional code to generate a received.png from a sent.png. Program ping-pongs encoded img data using pySerial and the Arduino.
+Fully functional code to generate a received.png from a sent.png. Program ping-pongs encoded img data using pySerial and the Arduino. Use as a reference for encoding and decoding data
 
 ## extract_pngs
 
@@ -22,6 +22,8 @@ Sept 11 // Having trouble sending the same like multiple times. Unsure if it's a
 
 Sept 12 // Working with different baurdrates. Changed everything to 115200. Checks need to be implemented in the future.
 
-## sent image
+Sept 17 // Added in many debugging statements in subroutines. Changed main so that the next package sent will only occur with the acknowledgement from the arduino. Currently implemented with transeiver_test_tx.ino
 
-This is the image being used for testing purposes.
+## img_receiver
+
+Sept 17 // Made the same changes as in img_transeiver. Currently can not successfully read correct response from Arduino. recvLikeArduino returns XXX constantly. Currently being implemented with transeiver_test_rx.ino

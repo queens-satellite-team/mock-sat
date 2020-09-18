@@ -7,7 +7,7 @@
 #define PACK_SIZE 13
 #define BUF_SIZE 26
 
-const byte numChars = 64;
+const byte numChars = 32;
 char receivedChars[numChars];
 
 boolean newData = false;
@@ -24,13 +24,6 @@ void setup()
 {
     Serial.begin(115200);
 
-    pinMode(ledPin, OUTPUT);
-    digitalWrite(ledPin, HIGH);
-    delay(200);
-    digitalWrite(ledPin, LOW);
-    delay(200);
-    digitalWrite(ledPin, HIGH);
-
     radio.begin();
     radio.setDataRate(RF24_250KBPS);
     radio.setRetries(3, 5); // delay, count
@@ -44,8 +37,9 @@ void setup()
 
 void loop()
 {
+    //receive the data packet from the python script
     recvWithStartEndMarkers();
-    replyToPython();
+    //relay that packet to the receiver
     sendToReceiver();
 }
 
@@ -92,18 +86,19 @@ void recvWithStartEndMarkers()
 
 //===============
 
-void replyToPython()
+void replyToPython(bool rslt)
 {
-    if (newData == true)
+    if (rslt == true)
     {
-        Serial.print("<This just in ... ");
+        Serial.print("<Success: ");
         Serial.print(receivedChars);
-        Serial.print("   ");
-        Serial.print(millis());
+        Serial.print(" sent to receiver.");
         Serial.print('>');
-        // change the state of the LED everytime a reply is sent
-        digitalWrite(ledPin, !digitalRead(ledPin));
-        //newData = false;
+        newData = false;
+    }
+    else
+    {
+        Serial.print("<Error: Could not Transmit.>");
     }
 }
 
@@ -116,17 +111,8 @@ void sendToReceiver()
         bool rslt;
 
         rslt = radio.write(&receivedChars, sizeof(receivedChars));
+        // radio.write blocks until message is successfully acknowledged by the receiver or timeout/retransmit maxima are reached.
 
-        Serial.print("Data Sent ");
-        Serial.print(receivedChars);
-        if (rslt)
-        {
-            Serial.println("  Acknowledge received");
-            newData = false;
-        }
-        else
-        {
-            Serial.println("  Tx failed");
-        }
+        replyToPython(rslt);
     }
 }
