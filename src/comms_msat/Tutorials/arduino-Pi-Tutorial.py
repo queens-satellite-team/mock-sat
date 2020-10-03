@@ -89,7 +89,7 @@ def waitForArduino():
 # the program
 
 
-setupSerial(115200, "/dev/cu.usbserial-1410")
+setupSerial(115200, "/dev/cu.usbserial-1420")
 count = 0
 prevTime = time.time()
 while True:

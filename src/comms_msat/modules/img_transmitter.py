@@ -145,17 +145,25 @@ def main():
 
         print("Waiting for Arduino Response.")
         # wait until we get an acknowledgement
-        while arduinoReply.find("Success") == -1:
+        while arduinoReply.find("XXX") == 0:
+
+            if arduinoReply.find("Error") == 0:
+                print(arduinoReply)
+                arduinoReply = recvLikeArduino()
+                continue
+            elif arduinoReply.find("Success") == 0:
+                print(arduinoReply)
+                break
+            # end_if
+
             time.sleep(0.01)
             arduinoReply = recvLikeArduino()
-
-            if arduinoReply == "XXX":
-                continue
-            elif arduinoReply.find("Error") == 0:
-                print(arduinoReply)
-                continue
+        # end_while
 
         print("Returned Message: {} at time {}.".format(arduinoReply, time.time()))
+    # end_for
+
+    sendToArduino("STOP")  # send stop message to inform an end of transmission
 
 
 if __name__ == "__main__":

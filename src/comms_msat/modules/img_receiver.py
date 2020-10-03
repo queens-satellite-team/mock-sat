@@ -10,7 +10,6 @@ img_string = ""
 messageComplete = False
 outfile = "received.png"
 portname = "COM3"
-nchars = 16720
 
 
 def setupSerial(baudRate, serialPortName):
@@ -77,24 +76,58 @@ def sendToArduino(stringToSend):
 def stringToImage(stringToDecode):
 
     img_bytes = stringToDecode.encode("utf-8")
-    img_64_decoded = base64.b64decode(img_bytes)
+    if img_bytes:
+        print("Success: stringToImage: ASCII character string encoded to byte string.")
+        img_64_decoded = base64.b64decode(img_bytes)
 
-    with open(outfile, mode="wb") as output:
-        output.write(img_64_decoded)
+        if img_64_decoded:
+            print("Success: stringToImage: Byte string decoded with base 64.")
+
+            with open(outfile, mode="wb") as output:
+                output.write(img_64_decoded)
+                print("Ouput file: {} created.".format(outfile))
+        else:
+            print("Error: stringToImage: Byte string unable to decode with base 64.")
+    else:
+        print("Error: stringToImage: Character string not converted to bytes string.")
 
 
 def main():
+    # set up the serial connection made through the USB port to the Arduino
     setupSerial(115200, portname)
 
+    # img_string starts off empty and gets appended to by the received data
     global img_string
 
-    # nchars is hardcoded in for now
-    # must determine another termination condition for knowing when to end the receive session
-    while len(img_string) != nchars:
-        arduinoReply = recvLikeArduino()
-        if not (arduinoReply == "XXX"):
-            img_string = img_string + arduinoReply
+    # receive the first packet
+    arduinoReply = recvLikeArduino()
 
+    # loop until we get the STOP message
+    while arduinoReply.find("STOP") == -1:
+        time.sleep(0.01)
+
+        if arduinoReply.find("XXX") == 0:
+            arduinoReply = recvLikeArduino()
+            continue
+        elif arduinoReply.find("Error") == 0:
+            # if we receive an error, print the error, and try to get a new response
+            print("Returned Message: {} at time {}.".format(arduinoReply, time.time()))
+            arduinoReply = recvLikeArduino()
+            continue
+        elif arduinoReply.find("Success") == 0:
+            # if we read success in the received packet, append it to the img_string
+            img_string = img_string + arduinoReply
+            print("Returned Message: {} at time {}.".format(arduinoReply, time.time()))
+            arduinoReply = recvLikeArduino()
+            continue
+        else:
+            # if we receive anything else, just try again.
+            arduinoReply = recvLikeArduino()
+
+        # end_while
+    # end_while
+
+    # after receiving all the data packets encode string back into img file
     stringToImage(img_string)
 
 
