@@ -15,9 +15,9 @@ start = 0
 stop = pack_size
 
 # filename = str(sys.argv[1])
-filename = "src/comms_msat/img/sent.png"
+filename = "moc-sat/src/comms_msat/img/sent.png"
 # portname = str(sys.argv[2])
-portname = "/dev/cu.usbserial-1420"
+portname = "/dev/cu.usbserial-1410"
 
 
 def setupSerial(baudRate, serialPortName):
@@ -154,6 +154,9 @@ def main():
             elif arduinoReply.find("Success") == 0:
                 print(arduinoReply)
                 break
+            elif arduinoReply.find(" ") == 0:
+                arduinoReply = recvLikeArduino()
+                continue
             # end_if
 
             time.sleep(0.01)
