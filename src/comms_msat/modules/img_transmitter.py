@@ -17,7 +17,7 @@ stop = pack_size
 # filename = str(sys.argv[1])
 filename = "moc-sat/src/comms_msat/img/sent.png"
 # portname = str(sys.argv[2])
-portname = "/dev/cu.usbserial-1410"
+portname = "/dev/cu.usbserial-1420"
 
 
 def setupSerial(baudRate, serialPortName):
