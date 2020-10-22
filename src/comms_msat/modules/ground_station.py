@@ -40,7 +40,8 @@ pack_size = 32
 start = 0
 stop = pack_size
 # portname = "/dev/cu.usbserial-1420"
-portname = "/dev/cu.usbmodem14101"
+portname = "/dev/cu.usbserial-1410"
+# portname = "/dev/cu.usbmodem14101"
 
 ####################################################################
 ######################### ARDUINO CONTROL ##########################
@@ -63,6 +64,7 @@ def arduinoACK():
     while msg.find("success") == -1:
         msg = recvLikeArduino()
         if not (msg == "XXX"):
+            print(msg)
             return True
 
 
@@ -365,31 +367,38 @@ class Application(tk.Frame):
         self.log_text_box.configure(state="normal")
         self.log_text_box.insert("end", msg)
         self.log_text_box.insert("end", "\n")
+        self.log_text_box.insert("end", "\n")
         self.log_text_box.configure(state="disabled")
 
     def cmd_one(self):
         """receive image command"""
-        sendToArduino("cmd_1")
+        sendToArduino("cmd_1_1234")
 
-        self.console_print("Waiting for Acknowledgement from Arduino")
+        self.console_print("Waiting for Arduino...")
         if arduinoACK():
-            self.console_print("Acknowldged by Arduino")
+            self.console_print("Transmitted Successfully.")
+        else:
+            self.console_print("Failed Transmission.")
 
     def cmd_two(self):
         """get health values"""
-        sendToArduino("cmd_2")
+        sendToArduino("cmd_2_5678")
 
-        self.console_print("Waiting for Acknowledgement from Arduino")
+        self.console_print("Waiting for Arduino...")
         if arduinoACK():
-            self.console_print("Acknowldged by Arduino")
+            self.console_print("Transmitted Successfully.")
+        else:
+            self.console_print("Failed Transmission.")
 
     def cmd_three(self):
         """reboot SAT -- blink some LEDS for now"""
-        sendToArduino("cmd_3")
+        sendToArduino("cmd_3_9012")
 
-        self.console_print("Waiting for Acknowledgement from Arduino")
+        self.console_print("Waiting for Arduino...")
         if arduinoACK():
-            self.console_print("Acknowldged by Arduino")
+            self.console_print("Transmitted Successfully.")
+        else:
+            self.console_print("Failed Transmission.")
 
 
 ####################################################################
