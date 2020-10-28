@@ -32,11 +32,11 @@ plt.figure(figsize=(15,12))
 
 plt.subplot(121)
 plt.imshow(img)
-plt.title(f"Original Image ({(img_size / 1024):.2f} kB)")
+#plt.title(f"Original Image ({(img_size / 1024):.2f} kB)")
 
 plt.subplot(122)
 plt.imshow(img_compressed)
-plt.title(f"Compressed Image ({(img_compressed_size / 1024):.2f} kB)")
+#plt.title(f"Compressed Image ({(img_compressed_size / 1024):.2f} kB)")
 
 plt.show()
 plt.savefig("/home/pi/Desktop/compression_results.png")
