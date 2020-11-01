@@ -454,8 +454,11 @@ class Application(tk.Frame):
         # receive acknowledgement
         if arduinoACK():
             self.console_print("Sent Data Successfully.")
-            # begin receiving the image
+            # receive the image
             self.receiveImage()
+
+            # terminate transeivers and return to idle state
+            sendToArduino("cmd_0_000")
 
         else:
             self.console_print("Failed to Send Data.")
@@ -478,6 +481,9 @@ class Application(tk.Frame):
             # begin receiving the data
             self.receiveHealthData()
 
+            # terminate transeivers and return to idle state
+            sendToArduino("cmd_0_000")
+
         else:
             self.console_print("Failed to Send Data.")
 
@@ -498,6 +504,9 @@ class Application(tk.Frame):
         if arduinoACK():
             self.console_print("Sent Data Successfully.")
             self.receiveRebootConfirmation()
+
+            # terminate transeivers and return to idle state
+            sendToArduino("cmd_0_000")
         else:
             self.console_print("Failed to Send Data.")
 
