@@ -1,24 +1,24 @@
 """
 Sean Tedesco October 2020
 Communications Team 
-Implementation of a Ground Station Control Panel of the QSAT Moc-Sat
+Implementation of a Ground Station Control Panel for the QSAT Moc-Sat
 
 The main objective of this module includes: 
     1. To have a GUI to choose from a list of commands 
     2. Easy communication to a connected Transmitting Radio (Arduino and RF24, or STM32 and CC1120)
     3. See progress of incoming data and have a log of previously sent commands and received data. 
 """
+####################################################################
+########################### USER CONFIG ############################
+####################################################################
 
-"""
-Reference Material: 
+outfile = "/moc-sat/src/comms_msat/img/received.png"
+portname = "/dev/cu.usbserial-1420"  # for arduino nano on mac
+# portname = "/dev/cu.usbmodem14101"    # for arduino uno on mac
 
-Widget Class	Description
-Label	            A widget used to display text on the screen
-Button	            A button that can contain text and can perform an action when clicked
-Entry	            A text entry widget that allows only a single line of text
-Text	            A text entry widget that allows multiline text entry
-Frame	            A rectangular region used to group related widgets or provide padding between widgets
-"""
+####################################################################
+############################# IMPORTS ##############################
+####################################################################
 
 from tkinter import Menu, HORIZONTAL
 from tkinter import scrolledtext
@@ -30,21 +30,22 @@ import sys
 import time
 import base64
 
+####################################################################
+############################# GLOBALS ##############################
+####################################################################
 startMarker = "<"
 endMarker = ">"
 dataStarted = False
 newCMD = False
 dataBuf = ""
+img_string = ""
 messageComplete = False
 pack_size = 32
 start = 0
 stop = pack_size
-portname = "/dev/cu.usbserial-1420"
-# portname = "/dev/cu.usbserial-1410"
-# portname = "/dev/cu.usbmodem14101"
 
 ####################################################################
-######################### ARDUINO CONTROL ##########################
+####################### CONTROL SUBROUTINES ########################
 ####################################################################
 def setupSerial(baudRate, serialPortName):
 
@@ -365,33 +366,138 @@ class Application(tk.Frame):
         self.log_text_box.insert("end", msg + "\n")
         self.log_text_box.configure(state="disabled")
 
-    def cmd_one(self):
-        """receive image command"""
-        sendToArduino("cmd_1_1234")
+    def receiveImage(self):
+        # img_string starts off empty and gets appended to by the received data
+        global img_string
 
+        # receive the first packet
+        arduinoReply = recvLikeArduino()
+
+        # loop until we get the STOP message
+        while arduinoReply.find("STOP") == -1:
+            time.sleep(0.01)
+
+            if arduinoReply.find("XXX") == 0:
+                arduinoReply = recvLikeArduino()
+                continue
+            elif arduinoReply.find("failed") == 0:
+                # if we receive an error, print the error, and try to get a new response
+                self.console_print(
+                    "Returned Message: {} at time {}.".format(arduinoReply, time.time())
+                )
+                arduinoReply = recvLikeArduino()
+                continue
+            elif arduinoReply.find("success") == 0:
+                # if we read success in the received packet, append it to the img_string
+                img_string = img_string + arduinoReply
+                self.console_print(
+                    "Returned Message: {} at time {}.".format(arduinoReply, time.time())
+                )
+                arduinoReply = recvLikeArduino()
+                continue
+            else:
+                # if we receive anything else, just try again.
+                arduinoReply = recvLikeArduino()
+            # end_if
+        # end_while
+
+        # after receiving all the data packets encode string back into img file)
+        img_bytes = img_string.encode("utf-8")
+        if img_bytes:
+            self.console_print(
+                "Success: ASCII character string encoded to byte string."
+            )
+            img_64_decoded = base64.b64decode(img_bytes)
+
+            if img_64_decoded:
+                self.console_print(
+                    "Success: stringToImage: Byte string decoded with base 64."
+                )
+
+                with open(outfile, mode="wb") as output:
+                    output.write(img_64_decoded)
+                    self.console_print("Ouput file: {} created.".format(outfile))
+            else:
+                self.console_print(
+                    "Error: stringToImage: Byte string unable to decode with base 64."
+                )
+        else:
+            self.console_print(
+                "Error: stringToImage: Character string not converted to bytes string."
+            )
+
+    def receiveHealthData(self):
+        pass
+
+    def receiveRebootConfirmation(self):
+        pass
+
+    def cmd_one(self):
+        """
+        This command receives an image from the satellite's memory.
+        The OP_code sent to the satellite is 1 and the angle given is attached to the command packet
+        """
+        # pad the provided angle
+        angle = self.angle_entry.get()
+        if len(angle) < 3:
+            while len(angle) < 3:
+                angle = "0" + angle
+        else:
+            angle = angle[0:2]
+
+        # send the command to the arduino
+        sendToArduino("cmd_1_" + angle)
+
+        # update the user
         self.console_print("Waiting for Arduino...")
+
+        # receive acknowledgement
         if arduinoACK():
             self.console_print("Sent Data Successfully.")
+            # begin receiving the image
+            self.receiveImage()
+
         else:
             self.console_print("Failed to Send Data.")
 
     def cmd_two(self):
-        """get health values"""
-        sendToArduino("cmd_2_5678")
+        """
+        This command gets the health values from a text file on the satellite
+        The OP_code being sent is 2 and no other information is required to be sent along. 
+        """
 
+        # send the command to the arduino
+        sendToArduino("cmd_2_000")
+
+        # update the user
         self.console_print("Waiting for Arduino...")
+
+        # receive acknowledgement
         if arduinoACK():
             self.console_print("Sent Data Successfully.")
+            # begin receiving the data
+            self.receiveHealthData()
+
         else:
             self.console_print("Failed to Send Data.")
 
     def cmd_three(self):
-        """reboot SAT -- blink some LEDS for now"""
-        sendToArduino("cmd_3_9012")
+        """
+        This command reboots the satellite in case of a required update or to reestablish a connection. 
+        For now, we are blinking LEDs on the satellite to confirm recognition. 
+        The OP_code being sent is 3 and no other information is required to be sent along. 
+        """
 
+        # send the command to the arduino
+        sendToArduino("cmd_3_000")
+
+        # update the user
         self.console_print("Waiting for Arduino...")
+
+        # receive acknowledgement
         if arduinoACK():
             self.console_print("Sent Data Successfully.")
+            self.receiveRebootConfirmation()
         else:
             self.console_print("Failed to Send Data.")
 
