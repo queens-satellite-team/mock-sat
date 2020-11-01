@@ -39,8 +39,8 @@ messageComplete = False
 pack_size = 32
 start = 0
 stop = pack_size
-# portname = "/dev/cu.usbserial-1420"
-portname = "/dev/cu.usbserial-1410"
+portname = "/dev/cu.usbserial-1420"
+# portname = "/dev/cu.usbserial-1410"
 # portname = "/dev/cu.usbmodem14101"
 
 ####################################################################
@@ -61,11 +61,14 @@ def setupSerial(baudRate, serialPortName):
 
 def arduinoACK():
     msg = ""
-    while msg.find("success") == -1:
+    while msg.find("XXX") == 0:
         msg = recvLikeArduino()
-        if not (msg == "XXX"):
+        if msg == "success":
             print(msg)
             return True
+        elif msg == "failed":
+            print(msg)
+            return False
 
 
 def waitForArduino():
@@ -174,16 +177,19 @@ class Application(tk.Frame):
 
     def enter_cmd(self):
         self.log_text_box.configure(state="normal")
+        self.log_text_box.insert("end", "\n")
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
-        self.log_text_box.insert("end", current_time + " Implementing: ")
-        self.log_text_box.insert("end", self.cmd_variable.get() + " ")
+        self.log_text_box.insert("end", current_time + "\n")
+
+        self.log_text_box.insert(
+            "end", "Implenting Command: " + self.cmd_variable.get() + "\n"
+        )
         if self.cmd_variable.get() == cmd_List[0]:
-            self.log_text_box.insert("end", "\n")
-            self.log_text_box.insert("end", "LA: " + self.lat_entry.get() + " ")
-            self.log_text_box.insert("end", "LO:" + self.long_entry.get() + " ")
-            print(self.long_entry.get())
-        self.log_text_box.insert("end", "\n")
+            self.log_text_box.insert(
+                "end", "Angle Sent: " + self.angle_entry.get() + "\n"
+            )
+            print(self.angle_entry.get())
         self.log_text_box.configure(state="disabled")
 
         if self.cmd_variable.get() == cmd_List[0]:
@@ -206,23 +212,14 @@ class Application(tk.Frame):
             for widget in self.add_data_frame.winfo_children():
                 widget.destroy()
 
-            ### ADDITIONAL DATA FRAME -- LATITUDE LABEL ###
-            self.lat_label = tk.Label(self.add_data_frame, text="Latitude: ")
-            self.lat_label.config(font=("Courier", 12))
-            self.lat_label.grid(row=0, column=0, sticky="W", padx=8, pady=4)
+            ### ADDITIONAL DATA FRAME -- ANGLE LABEL ###
+            self.angle_label = tk.Label(self.add_data_frame, text="Angle: ")
+            self.angle_label.config(font=("Courier", 12))
+            self.angle_label.grid(row=0, column=0, sticky="W", padx=8, pady=4)
 
-            ### ADDITIONAL DATA FRAME -- ENTRY ###
-            self.lat_entry = tk.Entry(self.add_data_frame, width=20)
-            self.lat_entry.grid(row=0, column=1, sticky="W", padx=8, pady=4)
-
-            ### ADDITIONAL DATA FRAME -- LONGNITUDE LABEL ###
-            self.lat_label = tk.Label(self.add_data_frame, text="Longitude: ")
-            self.lat_label.config(font=("Courier", 12))
-            self.lat_label.grid(row=1, column=0, sticky="W", padx=8, pady=4)
-
-            ### ADDITIONAL DATA FRAME -- LONGNITUDE ENTRY ###
-            self.long_entry = tk.Entry(self.add_data_frame, width=20)
-            self.long_entry.grid(row=1, column=1, sticky="W", padx=8, pady=4)
+            ### ADDITIONAL DATA FRAME -- ANGLE ENTRY ###
+            self.angle_entry = tk.Entry(self.add_data_frame, width=20)
+            self.angle_entry.grid(row=0, column=1, sticky="W", padx=8, pady=4)
 
             ### ADDITIONAL DATA FRAME -- ENTER BUTTON ###
             self.enter = tk.Button(
@@ -365,9 +362,7 @@ class Application(tk.Frame):
 
     def console_print(self, msg):
         self.log_text_box.configure(state="normal")
-        self.log_text_box.insert("end", msg)
-        self.log_text_box.insert("end", "\n")
-        self.log_text_box.insert("end", "\n")
+        self.log_text_box.insert("end", msg + "\n")
         self.log_text_box.configure(state="disabled")
 
     def cmd_one(self):
@@ -376,9 +371,9 @@ class Application(tk.Frame):
 
         self.console_print("Waiting for Arduino...")
         if arduinoACK():
-            self.console_print("Transmitted Successfully.")
+            self.console_print("Sent Data Successfully.")
         else:
-            self.console_print("Failed Transmission.")
+            self.console_print("Failed to Send Data.")
 
     def cmd_two(self):
         """get health values"""
@@ -386,9 +381,9 @@ class Application(tk.Frame):
 
         self.console_print("Waiting for Arduino...")
         if arduinoACK():
-            self.console_print("Transmitted Successfully.")
+            self.console_print("Sent Data Successfully.")
         else:
-            self.console_print("Failed Transmission.")
+            self.console_print("Failed to Send Data.")
 
     def cmd_three(self):
         """reboot SAT -- blink some LEDS for now"""
@@ -396,9 +391,9 @@ class Application(tk.Frame):
 
         self.console_print("Waiting for Arduino...")
         if arduinoACK():
-            self.console_print("Transmitted Successfully.")
+            self.console_print("Sent Data Successfully.")
         else:
-            self.console_print("Failed Transmission.")
+            self.console_print("Failed to Send Data.")
 
 
 ####################################################################
