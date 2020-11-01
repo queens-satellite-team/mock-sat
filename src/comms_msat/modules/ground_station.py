@@ -12,7 +12,7 @@ The main objective of this module includes:
 ########################### USER CONFIG ############################
 ####################################################################
 
-outfile = "/moc-sat/src/comms_msat/img/received.png"
+outfile = "/moc-sat/src/comms_msat/imgs/received.png"
 portname = "/dev/cu.usbserial-1420"  # for arduino nano on mac
 # portname = "/dev/cu.usbmodem14101"    # for arduino uno on mac
 
