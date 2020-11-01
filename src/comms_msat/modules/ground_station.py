@@ -1,6 +1,5 @@
 """
-Sean Tedesco October 2020
-Communications Team 
+QSAT Communications Team 
 Implementation of a Ground Station Control Panel for the QSAT Moc-Sat
 
 The main objective of this module includes: 
