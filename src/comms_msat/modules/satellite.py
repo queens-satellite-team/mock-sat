@@ -200,7 +200,7 @@ def cmd_three(self):
 ########################## MAIN WINDOW #############################
 ####################################################################
 def main():
-    setupSerial(portname, 9600, timeout=0)
+    setupSerial(9600, portname)
 
 
 if __name__ == "__main__":
