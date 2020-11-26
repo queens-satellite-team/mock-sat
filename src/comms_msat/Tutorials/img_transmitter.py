@@ -15,7 +15,7 @@ start = 0
 stop = pack_size
 
 # filename = str(sys.argv[1])
-filename = "moc-sat/src/comms_msat/img/sent.png"
+filename = "moc-sat/src/comms_msat/imgs/sent.png"
 # portname = str(sys.argv[2])
 portname = "/dev/cu.usbserial-1420"
 
@@ -96,12 +96,14 @@ def imageToCharacters(file):
         img_encoded = base64.b64encode(image.read())
         if img_encoded:
             print("Image file successfully encoded.")
+            print(img_encoded)
         else:
             print("Error: image file did not encode.")
 
         img_chars = img_encoded.decode("utf-8")
         if img_chars:
             print("Encoded image succefullly converted to utf-8 string.")
+            print(img_chars + "\n")
         else:
             print("Error: Encoded image did not convert to utf-8 string.")
 
@@ -127,7 +129,7 @@ def createPack():
 
 
 def main():
-    setupSerial(115200, portname)
+    setupSerial(9600, portname)
     imageToCharacters(filename)
 
     # loop through entire utf-8 string.

@@ -12,7 +12,8 @@ The main objective of this module includes:
 ####################################################################
 
 outfile = "/moc-sat/src/comms_msat/imgs/received.png"
-portname = "/dev/cu.usbserial-1420"  # for arduino nano on mac
+infile = "/moc-sat/src/comms_msat/imgs/sent.png"
+portname = "/dev/cu.usbserial-1410"  # for arduino nano on mac
 # portname = "/dev/cu.usbmodem14101"    # for arduino uno on mac
 
 ####################################################################

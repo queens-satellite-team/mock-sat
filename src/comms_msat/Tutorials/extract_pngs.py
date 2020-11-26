@@ -2,7 +2,7 @@
 # Extract PNGs from a file and put them in a pngs/ directory
 import sys
 
-with open("PythonAttempt/sent.png", "rb") as binary_file:
+with open("moc-sat/src/comms_msat/imgs/sent.png", "rb") as binary_file:
     binary_file.seek(0, 2)  # Seek the end
     num_bytes = binary_file.tell()  # Get the file size
     print(num_bytes)
@@ -24,5 +24,7 @@ with open("PythonAttempt/sent.png", "rb") as binary_file:
             binary_file.seek(i)
             # Read the size of image plus the signature
             png_data = binary_file.read(png_size + 8)
-            with open("PythonAttempt/img/pngs" + str(i) + ".png", "wb") as outfile:
+            with open(
+                "moc-sat/src/comms_msat/imgs/png" + str(i) + ".png", "wb"
+            ) as outfile:
                 outfile.write(png_data)
