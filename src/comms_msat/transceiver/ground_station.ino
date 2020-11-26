@@ -1,61 +1,54 @@
-/************************************ HARDWARE CONFIG ******************************/
-#define CMD1_pin 3
-#define CMD2_pin 4
-#define CMD3_pin 5
-#define CE_pin 10
-#define CSN_pin 9
 /***********************************************************************************/
 /******************************** INCLUDES AND GLOBALS *****************************/
 #include <SPI.h>
-#include <nRF24L01.h>
 #include <RF24.h>
 
-byte addresses[][6] = {"TxAAA", "RxAAA"};
-bool newData = false;
+byte addresses[][6] = {"1Node", "2Node"};
+
+/* globals for loop() */
 bool newCommand = false;
-String OP_CODE;
+String command;
+
+/* globals for recvFromGS() */
+bool newData = false;
 const byte numChars = 32;
 char receivedChars[numChars];
-uint8_t chann = 81;
-bool role = 1; // 1 = transmit, 0 = receive
 
-struct commandStruct
-{
-  uint8_t _OP_CODE;
-  char _data[];
-} commandPack;
-
+/* global data structure - maximum of 32 bytes can be sent as a packet */
 struct dataStruct
 {
-  uint64_t _packCount;
-  String _receviedData;
+  /* TYPE        NAME                  USE           BYTE LOCATION    */
+  char flag;             //(command / data)           [0]
+  char op_code;          //(command number)           [1]
+  uint8_t data_len;      //(length of data)           [2]
+  uint8_t data_start;    //(character to start)       [3]
+  char data[20];         //(actual data)           [4:23]
+  unsigned long _micros; //(return trip time)     [24:27]
+  uint8_t data_end;      //(character to end)        [28]
 } dataPack;
 
 /***********************************************************************************/
-/********************************** RADIO CONFIG ***********************************/
+/********************************** USER CONFIG ***********************************/
 // Radio configuration
-// 0 or 1 to distinguish between Tx = 0 and Rx = 1
-bool radioNumber = 0;
+// 0 or 1 to distinguish between GRS = 0 and SAT = 1
+bool radioNumber = 0;  // sets writing and reading pipe addresses
+bool role = 1;         // 1 = transmit, 0 = receive
+uint8_t channel = 100; // frequency channel
 
-// Hardware configuration:
-RF24 radio(CE_pin, CSN_pin);
+// Hardware configuration
+RF24 radio(8, 10); //CE, CSN
 /***********************************************************************************/
 /*************************************** setup() ***********************************/
 void setup()
 {
-  //INITIALIZE PINS
-  pinMode(CMD1_pin, OUTPUT);
-  pinMode(CMD2_pin, OUTPUT);
-  pinMode(CMD3_pin, OUTPUT);
-  resetPins();
+  configSerial();
+  configDataPack();
 
-  // ESTABLISH RADIO PARAMETERS
   radio.begin();
   radio.setPALevel(RF24_PA_HIGH);
   radio.setAutoAck(true);
-  radio.setChannel(chann); //0-125
-  radio.setDataRate(RF24_250KBPS);
-  radio.setRetries(3, 5); //delay, count
+  radio.setDataRate(RF24_250KBPS); // RF24_1MBPS or RF24_250KBPS
+
   if (radioNumber)
   {
     radio.openWritingPipe(addresses[1]);
@@ -67,40 +60,72 @@ void setup()
     radio.openReadingPipe(1, addresses[1]);
   }
   radio.stopListening();
-
-  //SETUP SERIAL CONNECTION WITH PYTHON SCRIPT
-  Serial.begin(9600);
-  Serial.flush();
-  Serial.println("<Arduino is ready>");
-
-  //RESET COMMAND FIELDS USED TO CONTROL RECEIVING / SENDING
-  OP_CODE = '0';
-  receivedChars[4] = '0'
 }
 /***********************************************************************************/
 /************************************* loop () *************************************/
 void loop()
 {
-
-  if (Serial.available()) // ground station control panel communicates to transeivers through serial connection
+  if (Serial.available())
   {
-    recvFromGS();               // received data held in receivedChars
-    OP_CODE = receivedChars[4]; // update the OP_CODE
+    // receive the command from the ground station, updates the newData flag
+    recvFromGS();
 
-    if (OP_CODE.equals("1"))
+    // if we're done collecting the new data...
+    if (newData)
     {
-      commandOne();
-    }
-    else if (OP_CODE.equals("2"))
-    {
-      commandTwo();
-    }
-    else if (OP_CODE.equals("3"))
-    {
-      commandThree();
+
+      radio.stopListening();
+
+      if (!radio.write(&receivedChars, sizeof(receivedChars)))
+      {
+        Serial.println(F("<failed>"));
+      }
+      else
+      {
+        Serial.println(F("<success>"));
+        newData = false;
+      }
     }
   }
-  delay(1000);
+  delay(500);
+}
+/******************************* configRadio ************************************/
+void configRadio()
+{
+  radio.begin();
+  radio.setPALevel(RF24_PA_HIGH);
+  radio.setAutoAck(true);
+  radio.setDataRate(RF24_250KBPS); // RF24_1MBPS or RF24_250KBPS
+
+  if (radioNumber)
+  {
+    radio.openWritingPipe(addresses[1]);
+    radio.openReadingPipe(1, addresses[0]);
+  }
+  else
+  {
+    radio.openWritingPipe(addresses[0]);
+    radio.openReadingPipe(1, addresses[1]);
+  }
+  radio.stopListening();
+}
+/***********************************************************************************/
+/********************************* configSerial *********************************/
+void configSerial()
+{
+  Serial.begin(9600);
+  Serial.flush();
+  Serial.println("<Arduino is ready>");
+}
+/***********************************************************************************/
+/********************************** configDataPack ******************************/
+void configDataPack()
+{
+  dataPack.flag = '0';
+  dataPack.op_code = '0';
+  dataPack.data_len = 0;
+  dataPack.data_start = B10101010;
+  dataPack.data_end = B01010101;
 }
 /***********************************************************************************/
 /************************************* recvFromGS() ********************************/
@@ -142,200 +167,83 @@ void recvFromGS()
   }
 }
 /***********************************************************************************/
-/********************************* resetPins() *************************************/
-void resetPins()
-{
-  digitalWrite(CMD1_pin, HIGH);
-  digitalWrite(CMD2_pin, HIGH);
-  digitalWrite(CMD3_pin, HIGH);
-  delay(250);
-  digitalWrite(CMD1_pin, LOW);
-  digitalWrite(CMD2_pin, LOW);
-  digitalWrite(CMD3_pin, LOW);
-  delay(250);
-  digitalWrite(CMD1_pin, HIGH);
-  digitalWrite(CMD2_pin, HIGH);
-  digitalWrite(CMD3_pin, HIGH);
-  delay(250);
-  digitalWrite(CMD1_pin, LOW);
-  digitalWrite(CMD2_pin, LOW);
-  digitalWrite(CMD3_pin, LOW);
-  delay(250);
-  digitalWrite(CMD1_pin, HIGH);
-  digitalWrite(CMD2_pin, HIGH);
-  digitalWrite(CMD3_pin, HIGH);
-  delay(250);
-  digitalWrite(CMD1_pin, LOW);
-  digitalWrite(CMD2_pin, LOW);
-  digitalWrite(CMD3_pin, LOW);
-}
-/***********************************************************************************/
 /********************************** commandOne *************************************/
 void commandOne()
 {
-  // Stop listening so we may talk
+  Serial.println("Command One Reached"); //debugging
+
+  //debugging
+  Serial.print("Updated Data: ");
+  Serial.println(dataPack.data);
+  Serial.print(" Flag: ");
+  Serial.println(dataPack.flag);
+
   radio.stopListening();
 
-  //update the OP_CODE to be sent
-  commandPack._OP_CODE = 1;
-
-  //update the data to be sent, last three numbers from the receivedChars
-  //receivedChars is: cmd_1_###
-  for (int i = 0; i < 3; i++)
+  if (!radio.write(&dataPack, sizeof(dataPack)))
   {
-    commandPack._data[i] = receivedChars[i + 6];
-  }
-
-  //write to the satellite
-  if (!radio.write(&commandPack, sizeof(commandPack)))
-  {
-    // if there is an unsuccesful write, let the user know
-    Serial.println("<failed>");
+    Serial.println(F("Failed to send Command One"));
   }
   else
   {
-    // if there is a successful write, start receiving data
-    Serial.println("<success>");
-    newData = false;
-
-    // start listening for responses
-    radio.startListening();
-
-    if (radio.available())
-    {
-
-      // while there is data ready
-      while (radio.available())
-      {
-
-        // get the payload
-        if (!radio.read(&dataPack, sizeof(dataPack)))
-        {
-          Serial.println("<failed>");
-        }
-        else
-        {
-          //send the payload data to ground station control panel
-          Serial.print("<success");
-          Serial.print(dataPack._packCount);
-          Serial.print(dataPack._receivedData);
-          Serial.println(">");
-        }
-      }
-    }
+    Serial.println(F("Sent Command One"));
+    newCommand = false;
   }
 }
 /***********************************************************************************/
 /********************************** commandTwo *************************************/
 void commandTwo()
 {
+  Serial.println("Command Two Reached"); //debugging
 
-  // Stop listening so we may talk
+  // update the data to be sent
+  dataPack.flag = 2;
+  dataPack.data[0] = '2';
+
+  //debugging
+  Serial.print("Updated Data: ");
+  Serial.print(" Flag: ");
+  Serial.print(dataPack.flag);
+  Serial.print(" Data: ");
+  Serial.println(dataPack.data[0]);
+
   radio.stopListening();
 
-  //update the OP_CODE to be sent
-  commandPack._OP_CODE = 1;
-
-  //update the data to be sent, last three numbers from the receivedChars
-  //receivedChars is: cmd_2_###
-  for (int i = 0; i < 3; i++)
+  if (!radio.write(&dataPack, sizeof(dataPack)))
   {
-    commandPack._data[i] = receivedChars[i + 6];
-  }
-
-  //write to the satellite
-  if (!radio.write(&commandPack, sizeof(commandPack)))
-  {
-    // if there is an unsuccesful write, let the user know
-    Serial.println("<failed>");
+    Serial.println(F("Failed to send Command Two"));
   }
   else
   {
-    // if there is a successful write, start receiving data
-    Serial.println("<success>");
-    newData = false;
-
-    // start listening for responses
-    radio.startListening();
-
-    if (radio.available())
-    {
-
-      // while there is data ready
-      while (radio.available())
-      {
-
-        // get the payload
-        if (!radio.read(&dataPack, sizeof(dataPack)))
-        {
-          Serial.println("<failed>");
-        }
-        else
-        {
-          //send the payload data to ground station control panel
-          Serial.print("<success");
-          Serial.print(dataPack._packCount);
-          Serial.print(dataPack._receivedData);
-          Serial.println(">");
-        }
-      }
-    }
+    Serial.println(F("Sent Command Two"));
+    newCommand = false;
   }
 }
 /***********************************************************************************/
 /********************************** commandThree ***********************************/
 void commandThree()
 {
+  Serial.println("Command Three Reached"); //debugging
 
-  // Stop listening so we may talk
+  // update the data to be sent
+  dataPack.flag = 3;
+  dataPack.data[0] = '3';
+  Serial.print("Updated Data: ");
+  Serial.print(" Flag: ");
+  Serial.print(dataPack.flag);
+  Serial.print(" Data: ");
+  Serial.println(dataPack.data[0]);
+
   radio.stopListening();
 
-  //update the OP_CODE to be sent
-  commandPack._OP_CODE = 3;
-
-  //update the data to be sent, last three numbers from the receivedChars
-  //receivedChars is: cmd_3_###
-  for (int i = 0; i < 3; i++)
+  if (!radio.write(&dataPack, sizeof(dataPack)))
   {
-    commandPack._data[i] = receivedChars[i + 6];
-  }
-
-  //write to the satellite
-  if (!radio.write(&commandPack, sizeof(commandPack)))
-  {
-    // if there is an unsuccesful write, let the user know
-    Serial.println("<failed>");
+    Serial.println(F("Failed to send Command Three"));
   }
   else
   {
-    // if there is a successful write, start receiving data
-    Serial.println("<success>");
-    newData = false;
-
-    // start listening for responses
-    radio.startListening();
-
-    if (radio.available())
-    {
-
-      // while there is data ready
-      while (radio.available())
-      {
-
-        // get the payload
-        if (!radio.read(&dataPack, sizeof(dataPack)))
-        {
-          Serial.println("<failed>");
-        }
-        else
-        {
-          //send the payload data to ground station control panel
-          Serial.print("<success");
-          Serial.print(dataPack._packCount);
-          Serial.print(dataPack._receivedData);
-          Serial.println(">");
-        }
-      }
-    }
+    Serial.println(F("Sent Command Three"));
+    newCommand = false;
   }
-}
+} //end_commandThree
+  /***********************************************************************************/
