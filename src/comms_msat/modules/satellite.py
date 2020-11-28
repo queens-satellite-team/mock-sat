@@ -1,6 +1,5 @@
 """
 QSAT Communications Team 
-Implementation of the OBC within the 
 
 The main objective of this module includes: 
     1. To have a GUI to choose from a list of commands 
@@ -12,6 +11,7 @@ The main objective of this module includes:
 ####################################################################
 
 infile = "/moc-sat/src/comms_msat/imgs/sent.png"
+outfile = "/moc-sat/src/comms_msat/imgs/received.png"
 portname = "/dev/ttyACM0"  # for arduino uno on raspberryPi
 
 ####################################################################
@@ -141,6 +141,27 @@ def imageToCharacters(file):
         print("Encoded Image is " + str(nchars) + " characters long.")
 
 
+def charactersToImage(stringToDecode):
+
+    global outfile
+
+    img_bytes = stringToDecode.encode("utf-8")
+    if img_bytes:
+        print("Success: stringToImage: ASCII character string encoded to byte string.")
+        img_64_decoded = base64.b64decode(img_bytes)
+
+        if img_64_decoded:
+            print("Success: stringToImage: Byte string decoded with base 64.")
+
+            with open(outfile, mode="wb") as output:
+                output.write(img_64_decoded)
+                print("Ouput file: {} created.".format(outfile))
+        else:
+            print("Error: stringToImage: Byte string unable to decode with base 64.")
+    else:
+        print("Error: stringToImage: Character string not converted to bytes string.")
+
+
 def createPack():
 
     global img_chars, start, stop, pack_size
@@ -201,6 +222,18 @@ def cmd_three(self):
 ####################################################################
 def main():
     setupSerial(9600, portname)
+
+    global img_string
+
+    msg = ""
+    while msg.find("STOP") == -1:
+        msg = recvLikeArduino()
+        if not (msg == "XXX"):
+            img_string += msg
+            print(img_string)
+
+    charactersToImage(img_string)
+    print("Main Finished")
 
 
 if __name__ == "__main__":

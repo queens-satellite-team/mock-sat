@@ -144,6 +144,27 @@ def imageToCharacters(file):
         print("Encoded Image is " + str(nchars) + " characters long.")
 
 
+def stringToImage(stringToDecode):
+
+    global outfile
+
+    img_bytes = stringToDecode.encode("utf-8")
+    if img_bytes:
+        print("Success: stringToImage: ASCII character string encoded to byte string.")
+        img_64_decoded = base64.b64decode(img_bytes)
+
+        if img_64_decoded:
+            print("Success: stringToImage: Byte string decoded with base 64.")
+
+            with open(outfile, mode="wb") as output:
+                output.write(img_64_decoded)
+                print("Ouput file: {} created.".format(outfile))
+        else:
+            print("Error: stringToImage: Byte string unable to decode with base 64.")
+    else:
+        print("Error: stringToImage: Character string not converted to bytes string.")
+
+
 def createPack(flag="NA", op_code="NA", length="NA", data="NA"):
 
     pack = str(flag)
