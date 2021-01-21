@@ -1,10 +1,16 @@
 """
-QSAT Communications Team 
+QSAT Communications Team
 
-The main objective of this module includes: 
-    1. To have a GUI to choose from a list of commands 
+The main objective of this module includes:
+    1. To have a GUI to choose from a list of commands
     2. Easy communication to a connected Transmitting Radio (Arduino and RF24, or STM32 and CC1120)
-    3. See progress of incoming data and have a log of previously sent commands and received data. 
+    3. See progress of incoming data and have a log of previously sent commands and received data.
+
+TODO
+    - Make sure all exceptions thrown by serial are handled correctly, see
+      https://pythonhosted.org/pyserial/pyserial_api.html for details
+    - send full errors such as e.msg to error logs, not to console. See
+      https://docs.python.org/3/library/logging.html for example.
 """
 ####################################################################
 ########################### USER CONFIG ############################
@@ -18,10 +24,11 @@ portname = "/dev/ttyACM0"  # for arduino uno on raspberryPi
 ############################# IMPORTS ##############################
 ####################################################################
 from datetime import datetime
-import serial
+import serial as Serial
 import sys
 import time
 import base64
+from enum import Enum
 
 ####################################################################
 ############################# GLOBALS ##############################
@@ -38,19 +45,30 @@ start = 0
 stop = pack_size
 
 ####################################################################
+############################# ERRORS ###############################
+####################################################################
+class SatelliteErrors(Enum):
+    SERIAL_DEVICE_NOT_FOUND = ()
+    SERIAL_PARAM_OUT_OF_RANGE = ()
+    UNKNOWN_ERROR = ()
+
+####################################################################
 ####################### CONTROL SUBROUTINES ########################
 ####################################################################
-def setupSerial(baudRate, serialPortName):
-
-    global serialPort
-
-    serialPort = serial.Serial(
-        port=serialPortName, baudrate=baudRate, timeout=0, rtscts=True
-    )
-
-    print("Serial port " + serialPortName + " opened  Baudrate " + str(baudRate))
-
-    waitForArduino()
+def setupSerial(serial, baudRate, serialPortName):
+    try:
+        return serial.Serial(port=serialPortName,\
+                             baudrate=baudRate,\
+                             timeout=0,\
+                             rtscts=True)
+    except Serial.SerialException as e:
+        print("Serial port: "+serialPortName+" could not be opened")
+        return SatelliteErrors.SERIAL_DEVICE_NOT_FOUND
+    except ValueError as e:
+        print("Serial port parameter ", baudRate, " was out of range or invalid")
+        return SatelliteErrors.SERIAL_PARAM_OUT_OF_RANGE
+    except:
+        return SatelliteErrors.UNKNOWN_ERROR
 
 
 def arduinoACK():
@@ -202,7 +220,7 @@ def cmd_one():
 def cmd_two(self):
     """
     This command gets the health values from a text file on the satellite
-    The OP_code being sent is 2 and no other information is required to be sent along. 
+    The OP_code being sent is 2 and no other information is required to be sent along.
     """
 
     pass
@@ -210,9 +228,9 @@ def cmd_two(self):
 
 def cmd_three(self):
     """
-    This command reboots the satellite in case of a required update or to reestablish a connection. 
-    For now, we are blinking LEDs on the satellite to confirm recognition. 
-    The OP_code being sent is 3 and no other information is required to be sent along. 
+    This command reboots the satellite in case of a required update or to reestablish a connection.
+    For now, we are blinking LEDs on the satellite to confirm recognition.
+    The OP_code being sent is 3 and no other information is required to be sent along.
     """
     pass
 
@@ -221,7 +239,18 @@ def cmd_three(self):
 ########################## MAIN WINDOW #############################
 ####################################################################
 def main():
-    setupSerial(9600, portname)
+    serialPort = setupSerial(9600, portname)
+    if serialPort == SatelliteErrors.SERIAL_DEVICE_NOT_FOUND: return # do something in GUI
+    if serialPort == SatelliteErrors.SERIAL_PARAM_OUT_OF_RANGE: return # do something in GUI
+    if serialPort == SatelliteErrors.UNKNOWN_ERROR: return # do something in GUI
+
+    msg = ""
+    while msg.find("Arduino is ready") == -1:
+        msg = recvLikeArduino(serialPort)
+        if not (msg == "XXX"):
+            print(msg)
+
+    '''
 
     global img_string
 
@@ -234,6 +263,7 @@ def main():
 
     charactersToImage(img_string)
     print("Main Finished")
+    '''
 
 
 if __name__ == "__main__":
