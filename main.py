@@ -1,6 +1,5 @@
 import imp
 from src.comms.radio import Radio
-from src.payload.img_compr_raspi import PiCam
 
 def print_header():
     print('--------------------------------')
@@ -9,6 +8,7 @@ def print_header():
     print()
 
 def print_footer():
+    print()
     print('--------------------------------')
     print('--------------------------------')
 
@@ -18,8 +18,6 @@ def main():
     comms = Radio()
     comms.transmit()
     comms.receive()
-
-    payload = PiCam()
 
     print_footer()
 
