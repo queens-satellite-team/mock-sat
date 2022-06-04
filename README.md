@@ -1,21 +1,8 @@
 # Mock CubeSat
 
-The purpose of this repository is to keep track of work and issues while building a working (non-flight ready) satellite.  
+The purpose of this repository is to house all software and hardware required to build a Mock-Sat. A Mock-Sat is the Queen's Space Engineering Team - Satellite's hardware and software development platform. 
 
-## Summer 2020 Goals
-
-### Building Moc Sat
-Over the summer, our team plans to quickly design and build a Mock Satellite with relatively cheap and non-flight ready components. The goal is to create a learning model that meets the minimum mission requirements and can be easily fixed and upgraded. For a more detailed description of the Summer Team Goals, see the summer team [discussion Post](https://github.com/orgs/queens-satellite-team/teams/summer/discussions/3).
-
-### Facilitate transitions and plan for the year
-
-Due to the effects of Covid-19, the QSAT transition period moving into 2020-2021 was cut short. This means that we'll need to find exec members for each subsystem and get documents and work from past exec. Once we have a team put together, we can plan out our goals for the year and create a budget plan.
-
-- [Subsystem Information](https://drive.google.com/file/d/1AzUVqYonok9aeZg2w4fLos2Mheti_4PH/view?usp=sharing)
-
-- [Exec Application Form](https://drive.google.com/file/d/1qkJ8QkFzmjUwb09uiYismIzTTNGWLFOD/view?usp=sharing)
-
-## Moc-sat minimum requirements
+## Mock-Sat Minimum Requirements
 
 The moc-sat should be able to orient in one direction, take a photo, send the compressed image to a mock base station using the transceiver. This is based on the mission requirements from [CSDC-5](http://www.csdcms.ca/). The minimum requirements to satisfy this functionality are:
 
@@ -23,6 +10,42 @@ The moc-sat should be able to orient in one direction, take a photo, send the co
 - R2. When the camera is aligned toward the image, a photo is taken.
 - R3. The photo is stored on the OBC and sent by the transceiver to the base station.
 
+# Getting Started
+Below are the following steps to setup the software and hardware of the mock-sat.
+
+## Software Setup
+### Prerequisites
+1. You should have python version 3.7 or greater installed.
+2. The raspberry pi should have the latest version of the [Raspberry Pi OS (Buster)](https://www.raspberrypi.com/software/) installed.
+
+You can see what version of python you are using with the following command in a terminal:
+```
+python3 -V
+```
+
+And you can determine which instance of python (as you can have multiple) you are running with the following command in a terminal:
+```
+which python3
+```
+
+### Setting up the Repository
+Perform the following steps within a terminal.
+
+1. Clone the repository.
+```
+git clone https://github.com/queens-satellite-team/mock-sat.git
+cd mock-sat/
+```
+
+2. Create a python virtual environment, activate it, and gather all required packages.
+```
+python3 -m venv venv
+source venv/bin/actiave
+venv/bin/python3 -m pip install --upgrade pip
+venv/bin/pip3 install -r requirements.txt
+```
+
+## Hardware Setup
 The following hardware is required:
 - BLDC Motor, power supply, and motor controller.
 - Two transceivers, one for the moc-sat and one for the base station.
@@ -31,6 +54,8 @@ The following hardware is required:
 - An orientation sensor
 - An Arduino
 - A 1-Axis test bed for the satellite
+
+Please see the README.md in the hardware directory within this repository for further instructions.
 
 ## Google Drive 
 
