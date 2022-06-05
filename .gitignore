@@ -1,6 +1,7 @@
 build/
 received.jpg
 *.icloud
+*env/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
