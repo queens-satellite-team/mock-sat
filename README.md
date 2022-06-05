@@ -56,12 +56,13 @@ python3 -m venv moc-sat-venv
 ```
 
 3. Activate the virtual environment.
-    a. If you are on MacOS or Raspberry Pi (Linux):
+
+- a. If you are on MacOS or Raspberry Pi (Linux):
 ```
 source moc-sat-venv/bin/activate
 ```
 
-    b. If you are developing on Windows:
+- b. If you are developing on Windows:
 ```
 source moc-sat-venv/Scripts/activate
 ```
