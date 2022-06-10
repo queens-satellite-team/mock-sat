@@ -11,8 +11,9 @@ definitions; however, to paraphrase:
          we are overwriting the default values.
 """
 
-class Task:
+from colorama import Fore
 
+class Task:
     """
     The Task Object.
 
@@ -26,16 +27,16 @@ class Task:
     priority = 10
     frequency = 1
     name = 'temp'
-    color = 'gray'
+    color = 'blue'
 
-    def __init__(self, satellite):
+    def __init__(self, mock_sat):
         """
-        Initialize the Task using the PyCubed cubesat object.
+        Initialize the Task using the mock_sat object.
         
-        :type satellite: Satellite
-        :param satellite: The cubesat to be registered
+        :type mock_sat: Satellite
+        :param mock_sat: The cubesat to be registered
         """
-        #self.cubesat = satellite
+        self.mock_sat = mock_sat
 
     def debug(self,msg,level=1):
         """
@@ -45,7 +46,16 @@ class Task:
         :param `level`: > 1 will print as a sub-level
         """
         if level==1:
-            print('{:>30} {}'.format(msg))
+            color_map = {
+                'blue': Fore.BLUE,
+                'green': Fore.GREEN,
+                'yellow': Fore.YELLOW,
+                'red': Fore.RED,
+                'cyan': Fore.CYAN,
+                'magenta': Fore.MAGENTA,
+                'white': Fore.WHITE,
+            }
+            print('{:>30} {}'.format(color_map[self.color] + '[' + self.name + ']' + Fore.WHITE ,msg))
         else:
             print('{}{}'.format('\t   └── ',msg))
 

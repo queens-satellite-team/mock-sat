@@ -1,4 +1,4 @@
-from .template_task import Task
+from tasks.template_task import Task
 import time
 
 class task(Task):
@@ -7,9 +7,7 @@ class task(Task):
     name = 'test'
     color = 'green'
 
-    schedule_later = True
-
-    def main_task(self):
+    async def main_task(self):
         self.debug('test start: {}'.format(time.monotonic()))
-        time.sleep(10)
+        time.sleep(1)
         self.debug('test stop: {}'.format(time.monotonic()))
