@@ -1,4 +1,4 @@
-from common.arduino import Arduino
+from ..common.arduino import Arduino
 
 class Radio(Arduino):
     def __init__(self):
