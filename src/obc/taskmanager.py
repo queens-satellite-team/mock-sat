@@ -56,8 +56,23 @@ class TaskManager:
     def schedule_later(self):
         raise NotImplementedError('must be implemented by TaskManager')
 
-    def sleep(self):
-        raise NotImplementedError('must be implemented by TaskManager')
+    async def sleep(self, seconds:float):
+        '''Non-blocking sleep, suspends the current task until the specified time.
+
+        Params:
+            - `seconds`: the amount of time for the task to sleep.
+
+        Returns:
+            - None
+
+        Raises:
+            - None
+
+        Note:
+            Always `await` this when called within a task! See test_task.py
+            for implementation.
+        '''
+        await self._sleep_until_nanos(_get_future_nanos(seconds))
 
     def suspend(self):
         raise NotImplementedError('must be implemented by TaskManager')
@@ -255,7 +270,6 @@ class ScheduledTask:
     def __str__(self):
         return  self.__repr__()
 
-
 class Task:
     def __init__(self, coroutine, priority):
         self.coroutine = coroutine
@@ -269,7 +283,6 @@ class Task:
 
     def __str__(self):
         return  self.__repr__()
-
 
 class Sleeper:
     def __init__(self, resume_nanos, task):
@@ -290,7 +303,6 @@ class Sleeper:
     def __str__(self) -> str:
         return self.__repr__()
 
-
 def _yield_once():
     '''await the return value of this function to yield the processor
     '''
@@ -298,3 +310,6 @@ def _yield_once():
         def __await__(self):
             yield
     return _CallMeNextTime()
+
+def _get_future_nanos(seconds_in_future):
+    return time.monotonic_ns() + int(seconds_in_future * 1000000000)
