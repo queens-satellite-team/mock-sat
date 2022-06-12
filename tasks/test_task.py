@@ -8,6 +8,6 @@ class task(Task):
     color = 'green'
 
     async def main_task(self):
-        self.debug('test start: {}'.format(time.monotonic()))
-        time.sleep(1)
-        self.debug('test stop: {}'.format(time.monotonic()))
+        self.debug(f'test start: {time.monotonic():.3f}')
+        await self.mock_sat.obc.sleep(5)
+        self.debug(f'test stop: {time.monotonic():.3f}')

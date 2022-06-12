@@ -3,12 +3,12 @@ import time
 
 class task(Task):
     priority = 1
-    frequency = 1/5 # once every 5s
+    frequency = 1/10 # once every 10s
     name = 'radio'
     color = 'red'
 
     async def main_task(self):
-        self.debug('radio start: {}'.format(time.monotonic()))
-        self.debug('Sending beacon')
-        time.sleep(1)
-        self.debug('radio stop: {}'.format(time.monotonic()))
+        self.debug(f'radio start: {time.monotonic():.3f}')
+        self.debug('sending beacon')
+        await self.mock_sat.obc.sleep(5)
+        self.debug(f'radio stop: {time.monotonic():.3f}')
