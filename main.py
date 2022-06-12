@@ -1,6 +1,7 @@
 import importlib
 from src.obc.taskmanager import TaskManager
 from colorama import Fore
+from datetime import datetime
 import os
 
 def print_header():
@@ -14,19 +15,29 @@ def print_footer():
     print(Fore.CYAN + '-------------------------------------' + Fore.WHITE, flush=True)
     print(Fore.CYAN + '-------------------------------------' + Fore.WHITE, flush=True)
 
+def print_boot_message(msg:str):
+    dt = datetime.now()
+    ts = datetime.timestamp(dt)
+    print('[' + Fore.GREEN + f'{ts:.0f}' + Fore.WHITE +'] ' + msg)
+
+def print_fatal_error(msg:str):
+    print(Fore.RED+msg+Fore.WHITE)
+
+
 def main():
     print_header()
-    print('['+Fore.GREEN+'000000'+Fore.WHITE+'] booting up mock-sat')
+    print_boot_message('booting up mock-sat')
     try:
         from src.common.satellite import mock_sat
-        mock_sat.scheduled_tasks={}
     except Exception as e:
-        print(Fore.RED+'! FAILED TO BOOT !'+Fore.WHITE)
+        print_fatal_error('! FAILED TO BOOT !')
+        raise e
 
-    print('['+Fore.GREEN+'000001'+Fore.WHITE+'] booting up OBC')
-    obc = TaskManager()
+    print_boot_message('booting up OBC')
+    mock_sat.obc = TaskManager()
 
-    print('['+Fore.GREEN+'000002'+Fore.WHITE+'] loading tasks...')
+    print_boot_message('loading tasks...')
+    mock_sat.scheduled_tasks = {}
     # schedule all tasks in directory
     for file in os.listdir('tasks'):
         # remove the '.py' from file name
@@ -38,17 +49,17 @@ def main():
 
         # auto-magically import the task file
         exec('import tasks.{}'.format(file))
-        print('{}{}'.format('\t└── ',file))
+        print('{}{}'.format('\t     └── ',file))
 
         # create a helper object for scheduling the task
         task_obj=eval('tasks.'+file).task(mock_sat)
 
         # schedule each task object and add it to our dict
-        mock_sat.scheduled_tasks[task_obj.name] = obc.schedule(task_obj.frequency, task_obj.main_task, task_obj.priority)
+        mock_sat.scheduled_tasks[task_obj.name] = mock_sat.obc.schedule(task_obj.frequency, task_obj.main_task, task_obj.priority)
     
-    print(len(mock_sat.scheduled_tasks),'tasks loaded...')
-    print('['+Fore.YELLOW+'--- RUNNING TASKS ---'+Fore.WHITE+']')
-    obc.run()
+    print_boot_message( str(len(mock_sat.scheduled_tasks)) + ' tasks loaded...')
+    print('[' + Fore.YELLOW + ' --- RUNNING TASKS --- ' + Fore.WHITE + ']')
+    mock_sat.obc.run()
     print_footer()
 
 if __name__ == '__main__':
