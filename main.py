@@ -1,5 +1,6 @@
 import importlib
 from src.obc.taskmanager import TaskManager
+from src.comms.radio import RF24
 from colorama import Fore
 from datetime import datetime
 import os
@@ -35,6 +36,11 @@ def main():
 
     print_boot_message('booting up OBC')
     mock_sat.obc = TaskManager()
+
+    print_boot_message('setting up satellite system resources')
+    print('\t     └── comms')
+    radio = RF24()
+    mock_sat.comms = radio
 
     print_boot_message('loading tasks...')
     mock_sat.scheduled_tasks = {}

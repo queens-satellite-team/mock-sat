@@ -1,6 +1,6 @@
 from ..common.arduino import Arduino
 
-class Radio(Arduino):
+class RF24(Arduino):
     def __init__(self):
         super().__init__()
         print('called radio init!')
