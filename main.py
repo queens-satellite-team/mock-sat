@@ -34,7 +34,7 @@ def main():
         raise e
 
     print_boot_message('booting up OBC')
-    mock_sat.obc = TaskManager()
+    mock_sat.obc = TaskManager(debug=False)
 
     print_boot_message('loading tasks...')
     mock_sat.scheduled_tasks = {}
