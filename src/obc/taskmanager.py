@@ -1,6 +1,18 @@
+"""
+task manager class
+~~~~~~~~~~~~
+"""
+
 import time
 
 class TaskManager:
+    """
+    A class to control all task related events including: adding tasks,
+    sleeping (leaving) during a task, suspending a task, schedueling
+    all of the tasks, and running all of the tasks. This is an 
+    implementation of the `tasko` python library that can be found with
+    this link: `https://github.com/maholli/tasko/tree/main`.
+    """
 
     def __init__(self, debug=False):
         self._tasks = []
@@ -27,8 +39,26 @@ class TaskManager:
         self._debug("adding task: ", awaitable_task)
         self._tasks.append(Task(awaitable_task, priority))
     
-    def run_later(self):
-        raise NotImplementedError('must be implemented by TaskManager')
+    def run_later(self, seconds_to_delay, awaitable_task, priority):
+        """
+        Add a concurrent task, delayed by some seconds.
+
+        Use:
+            TaskManager.run_later( seconds_to_delay=1.2, my_async_method() )
+        
+        Params:
+            `seconds_to_delay`: How long until the task should be kicked off?
+            `awaitable_task`: The coroutine to be concurrently driven to completion.
+        """
+        # Make sure we don't wait unnecessarily if there are lots of tasks to kick off
+        start_nanos = _get_future_nanos(seconds_to_delay)
+
+        async def _run_later():
+            await self._sleep_until_nanos(start_nanos)
+            await awaitable_task
+
+        # Added a priority parameter
+        self.add_task(_run_later(), priority)
 
     def schedule(self, hz: float, coroutine_function, priority:int, *args, **kwargs):
         '''
@@ -45,16 +75,30 @@ class TaskManager:
         
         Params:
             `hz`: How many times per second should the function run?
-            `coroutine_function` the async def function you want invoked on your schedule
-            `priority: If competing tasks overlap, the coroutine with highest priority will be ran first.
+            `coroutine_function`: the async def function you want invoked on your schedule
+            `priority`: If competing tasks overlap, the coroutine with highest priority will be ran first.
         '''
         assert coroutine_function is not None, "coroutine function must not be none"
         task = ScheduledTask(self, hz, coroutine_function, priority, args, kwargs)
         task.start()
         return task
 
-    def schedule_later(self):
-        raise NotImplementedError('must be implemented by TaskManager')
+    def schedule_later(self, hz: float, coroutine_function, priority, *args, **kwargs):
+        """
+        Like schedule, but invokes the coroutine_function after the first hz interval.
+        See TaskManager.schedule() method for parameter information.
+        """
+        ran_once = False
+
+        async def call_later():
+            nonlocal ran_once
+            if ran_once:
+                await coroutine_function(*args, **kwargs)
+            else:
+                await _yield_once()
+                ran_once = True
+
+        return self.schedule(hz, call_later, priority)
 
     async def sleep(self, seconds:float):
         '''Non-blocking sleep, suspends the current task until the specified time.
@@ -75,7 +119,23 @@ class TaskManager:
         await self._sleep_until_nanos(_get_future_nanos(seconds))
 
     def suspend(self):
-        raise NotImplementedError('must be implemented by TaskManager')
+        """
+        For making library functions that suspend and then resume later on some condition
+        E.g., a scope manager for SPI
+        To use this you will stash the resumer somewhere to call from another coroutine, AND
+        you will `await suspender` to pause this stack at the spot you choose.
+        :returns (async_suspender, resumer)
+        """
+        assert (
+            self._current is not None
+        ), "You can only suspend the current task if you are running the event loop."
+        suspended = self._current
+
+        def resume():
+            self._tasks.append(suspended)
+
+        self._current = None
+        return _yield_once(), resume
 
     def run(self):
         '''Run all of the scheduled tasks.
