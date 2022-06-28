@@ -1,20 +1,23 @@
 """
 task manager class
 ~~~~~~~~~~~~
+
+A class to control all task related events including: adding tasks,
+sleeping (leaving) during a task, suspending a task, schedueling
+all of the tasks, and running all of the tasks. This is an 
+implementation of the `tasko` python library that can be found with
+this link: `https://github.com/maholli/tasko/tree/main`.
 """
 
 import time
 
 class TaskManager:
-    """
-    A class to control all task related events including: adding tasks,
-    sleeping (leaving) during a task, suspending a task, schedueling
-    all of the tasks, and running all of the tasks. This is an 
-    implementation of the `tasko` python library that can be found with
-    this link: `https://github.com/maholli/tasko/tree/main`.
-    """
-
-    def __init__(self, debug=False):
+    '''The task manager class handles all events and tasks
+        assigned to the mock_sat. The Task Manager does not
+        care about the hardware or if the mock_sat can do the task,
+        as developers we must ensure of that!
+    '''
+    def __init__(self, debug=True):
         self._tasks = []
         self._sleeping = []
         self._ready = []
@@ -27,14 +30,20 @@ class TaskManager:
     
     def add_task(self, awaitable_task, priority):
         '''
-        Add a concurrent task (known as a coroutine, implemented as a generator)
+        Add a new task for the mock_sat to do.
+
+        Params:
+            `awaitable_task`: an asynchrounous routine (method), must be awaitable!
+            `priority`: the importance of the task (1:max, 255:min)
+
+        Returns:
+            - None
+
+        Raises:
+            - None
 
         Use:
           TaskManager.add_task(async_method.routine, async_method.priority)
-        
-        Params:
-            `awaitable_task`:  The coroutine to be concurrently driven to completion.
-            `priority`: the importance of the task
         '''
         self._debug("adding task: ", awaitable_task)
         self._tasks.append(Task(awaitable_task, priority))
@@ -62,21 +71,26 @@ class TaskManager:
 
     def schedule(self, hz: float, coroutine_function, priority:int, *args, **kwargs):
         '''
-        Describe how often a task should be called.
+        Describe how often a task should be called and add it to the schedule. The
+        schedule will call this function on the hz schedule. Only 1 instance of the
+        function will be alive at a time.
 
-        The event loop will call this coroutine function on the hz schedule.
-        Only up to 1 instance of your method will be alive at a time.
-        
+        Params:
+            `hz`: how many times per second should the function run.
+            `coroutine_function`: the async function you want invoked within the schedule
+            `priority`: If competing tasks overlap, the coroutine with highest priority will be ran first.
+
+        Returns:
+            - None
+
+        Raises:
+            - None
+
         Usage:
             - async def main_loop:
                 - await your_code()
             - scheduled_task = TaskManager.schedule(hz=100, coroutine_function=main_loop)
             - TaskManager.run()
-        
-        Params:
-            `hz`: How many times per second should the function run?
-            `coroutine_function`: the async def function you want invoked on your schedule
-            `priority`: If competing tasks overlap, the coroutine with highest priority will be ran first.
         '''
         assert coroutine_function is not None, "coroutine function must not be none"
         task = ScheduledTask(self, hz, coroutine_function, priority, args, kwargs)
@@ -140,6 +154,15 @@ class TaskManager:
     def run(self):
         '''Run all of the scheduled tasks.
 
+        Params:
+            - None
+
+        Returns:
+            - None
+
+        Raises:
+            - None
+
         Usage:
             async def application_loop():
                 pass
@@ -150,8 +173,11 @@ class TaskManager:
             if __name__ == '__main__':
                 run()
 
-        The crucial StopIteration exception signifies the end of a coroutine.
-        Other Exceptions that reach the runner break out, stopping your app and showing a stack trace.
+        Note:
+            - The crucial StopIteration exception signifies
+                the end of a coroutine. Other Exceptions
+                that reach the runner break out, stopping
+                your app and showing a stack trace.
         '''
 
         assert (self._current is None), 'Loop can only be advanced by 1 stack frame at a time.'
@@ -252,6 +278,7 @@ class TaskManager:
         # Pretty subtle here.  This yields once, then it continues next time the task scheduler executes it.
         # The async function is parked at this point.
         await _yield_once()
+
 
 class ScheduledTask:
     def __init__(self, manager, hz, forward_async_fn, priority, forward_args, forward_kwargs):
