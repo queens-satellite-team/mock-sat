@@ -11,6 +11,7 @@ to it from: mock-sat/firmware/common/arduino/arduino.ino
 
 import serial
 from serial import SerialTimeoutException
+from serial.serialutil import SerialException
 import smbus
 import time
 
@@ -21,18 +22,29 @@ class Arduino:
     will have access to all methods defined here.
     """
 
-    def __init__(self, port='/dev/ttyACM0', baud=115200, timeout=1) -> None:
-        self.ser = serial.Serial(port=port, baudrate=baud, timeout=timeout)
+    def __init__(self, uid, port='/dev/ttyACM0', baud=115200, timeout=10) -> None:
+        '''serial parameters'''
+        try:
+            self.ser = serial.Serial(port=port, baudrate=baud, timeout=timeout, rtscts=True)
+        except SerialException as e:
+            raise e
         self.ser.reset_input_buffer()
+        self._start_marker = start_marker
+        self._end_marker = end_marker
+        self._data_buffer = ""
+        self._data_started = False
+        self._message_complete = False
 
+        '''i2c parameters'''
         self.bus = smbus.SMBus(1)
         self.i2c_address = 0x04
+
 
     def send_over_serial(self, string:str='hello world'):
         ''' Send a message with serial (UART) communication.
 
         Params:
-            - string: the data to send.
+            - string (str): the data to send.
 
         Returns:
             - count (int): the number of bytes written.
@@ -40,17 +52,21 @@ class Arduino:
         Raises:	
             - SerialTimeoutException: In case a write timeout is configured for the port and the time is exceeded.
         '''
-        self.ser.flushOutput()
+
+        stringWithMarkers = self._start_marker
+        stringWithMarkers += data
+        stringWithMarkers += self._end_marker
         count = 0
+        self.ser.flushOutput()
         try:
-            count = self.ser.write(string.encode('utf-8'))
+            self.ser.write(stringWithMarkers.encode('utf-8'))
         except SerialTimeoutException as e:
             print(f'{self} failed to write over serial. Is the Arduino plugged in?')
             raise e
         return count
 
     def receive_over_serial(self):
-        '''Read and return one line from the USB port.
+        '''Read and return data from the USB port.
 
         Params:
             - None
@@ -62,10 +78,24 @@ class Arduino:
         Raises:
             - None
         '''
-        line = 'xxx'
-        if self.ser.inWaiting() > 0:
-            line = self.ser.readline().decode('utf-8').rstrip()
-        return line
+        while self.ser.inWaiting() > 0 and self._message_complete == False:
+            x = self.ser.read().decode('utf-8')  # decode needed for Python3
+
+            if self._data_started == True:
+                if x != self._end_marker:
+                    self._data_buffer = self._data_buffer + x
+                else:
+                    self._data_started = False
+                    self._message_complete = True
+            elif x == self._start_marker:
+                self._data_buffer = ''
+                self._data_started = True
+
+        if self._message_complete == True:
+            self._message_complete = False
+            return self._data_buffer
+        else:
+            return 'xxx'
 
     def send_over_i2c(self, string:str='hello world'):
         '''Send a message using the I2C bus communication.
@@ -108,9 +138,3 @@ class Arduino:
         '''
         number = self.bus.read_byte_data(self.i2c_address, 1)
         return number
-
-    def send_over_spi(self):
-        pass
-
-    def receive_over_spi(self):
-        pass
