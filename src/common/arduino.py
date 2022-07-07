@@ -61,7 +61,6 @@ class Arduino:
         try:
             self.ser.write(stringWithMarkers.encode('utf-8'))
         except SerialTimeoutException as e:
-            print(f'{self} failed to write over serial. Is the Arduino plugged in?')
             raise e
         return count
 
@@ -115,7 +114,6 @@ class Arduino:
             try:
                 self.bus.write_byte(self.address, data)
             except Exception as e:
-                print(f'{self} could not send message {char} over i2c.')
                 raise e
             count += 1
         return count

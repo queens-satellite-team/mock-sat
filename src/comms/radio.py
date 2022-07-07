@@ -1,5 +1,5 @@
 from ..common.arduino import Arduino
-from ..obc.logger import SatelliteLogger
+from ..common.logger import SatelliteLogger
 import serial
 from serial.serialutil import SerialException
 import sys
