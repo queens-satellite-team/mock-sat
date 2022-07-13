@@ -10,6 +10,7 @@ class Radio(Arduino):
     '''Interface class to control a radio.'''
 
     def __init__(self, uid, port, baud=115200, start_marker='<', end_marker='>'):
+        super().__init__()
         self._uid = uid                                     # unique ID
         self.supported_modes = ['T', 'R']                   # transmit, receive
         self.logger = SatelliteLogger.get_logger('radio')   # for debug, info, warning, and critical messages
