@@ -1,19 +1,15 @@
 from ..common.arduino import Arduino
 from ..common.logger import SatelliteLogger
-import serial
-from serial.serialutil import SerialException
-import sys
 import time
-import base64
 
-class Radio(Arduino):
+class RF24():
     '''Interface class to control a radio.'''
 
-    def __init__(self, uid, port, baud=115200, start_marker='<', end_marker='>'):
-        super().__init__()
+    def __init__(self, uid, port='/dev/ttyACM0', baud=115200, start_marker='<', end_marker='>'):
         self._uid = uid                                     # unique ID
         self.supported_modes = ['T', 'R']                   # transmit, receive
         self.logger = SatelliteLogger.get_logger('radio')   # for debug, info, warning, and critical messages
+        self.arduino = Arduino(port, baud, start_marker, end_marker)   # the common Arduino class
 
         self.__wait_for_msg('ready: serial')                # this message is expected to be received from the arduino firmware
         self.__set_uid()                                    # tell the arduino which radio you are using (0 or 1)
@@ -27,7 +23,7 @@ class Radio(Arduino):
             - data (str): 32 characters (string or bytes) to send.
         '''
 
-        self._transmit_header(data)
+        self.__transmit_header(data)
         self.logger.debug(f'transmitted: {data}')
         got_back = self.receive()
         if got_back == 'xxx':
@@ -47,13 +43,13 @@ class Radio(Arduino):
         start_time = time.time()
         received = 'xxx'
         while received == 'xxx':
-            received = self.receive_over_serial().strip()
+            received = self.arduino.receive_over_serial().strip()
             if time.time() > start_time + timeout:
                 self.logger.warning(f'no message received within {timeout} s.')
                 break
         return received
 
-    def _transmit_header(self, data:str, mode:str='T', num_payloads:int=1):
+    def __transmit_header(self, data:str, mode:str='T', num_payloads:int=1):
         '''Send a single header message.
 
         Params:
@@ -74,16 +70,16 @@ class Radio(Arduino):
         if data_len > 32: # max 32 bytes for a single transmission
             raise ValueError(f'string is too long, {data_len} is greater than 32 characters')
 
-        formatted_data = self._format_header(mode, num_payloads, data)
+        formatted_data = self.__format_header(mode, num_payloads, data)
         try:
-            self.send_over_serial(formatted_data)
+            self.arduino.send_over_serial(formatted_data)
         except Exception as e:
             self.logger.error(f'failed to transmit: {formatted_data}')
             raise e
 
         return data_len
 
-    def _format_header(self, mode:str, num_payloads:int, data:str):
+    def __format_header(self, mode:str, num_payloads:int, data:str):
         '''Formart the data to what the arduino expects for transmissions.
 
         Return:
@@ -91,7 +87,7 @@ class Radio(Arduino):
         '''
         mode = mode.upper()
         if mode not in self.supported_modes:
-            raise IndexError(f'Using unsupported mode: {mode}, "T", "S", or "R" are expected.')
+            raise IndexError(f'Using unsupported mode: {mode}, "T" or "R" are expected.')
 
         return mode + ':' + str(num_payloads) + ':' + data
 
@@ -99,7 +95,7 @@ class Radio(Arduino):
         if self._uid not in [0, 1]:
             raise ValueError(f'uid must be 0 or 1, not {self._uid}')
         radio_number = str(self._uid)
-        self.send_over_serial(radio_number)
+        self.arduino.send_over_serial(radio_number)
 
     def __wait_for_msg(self, msg:str='ready: serial', timeout:int=10):
         start_time = time.time()
@@ -108,6 +104,6 @@ class Radio(Arduino):
             if time.time() > start_time + timeout:
                 self.logger.warning(f'no message received, expected: {msg}')
                 break
-            incoming = self.receive_over_serial()
+            incoming = self.arduino.receive_over_serial()
             if not (incoming == 'xxx'):
                 self.logger.debug(incoming)
