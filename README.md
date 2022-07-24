@@ -1,27 +1,46 @@
 # Mock CubeSat
 
-The purpose of this repository is to house all software and hardware required to build a Mock-Sat. A Mock-Sat is the Queen's Space Engineering Team - Satellite's hardware and software development platform. 
+The purpose of this repository is to house all software and hardware required to build a Mock-Sat. A Mock-Sat is the Queen's Space Engineering Team - Satellite's hardware and software development platform. A typical use case for this platform is that you have some program or code idea and want to see how it interacts within the spacecraft system, or have some hardware and need to see how it can be integrated within the spacecraft system, you can build a moc-sat and implement your idea on top of the basic design.
 
 ## Mock-Sat Functionality
 
-The moc-sat should be able to orient in one direction, take a photo, send the compressed image to a mock base station using the transceiver. This is based on the mission requirements from [CSDC-5](http://www.csdcms.ca/). The minimum requirements to satisfy this functionality are:
+The moc-sat has the following resources are available to users:
 
-- R1. From an initial position set by the tester, the reaction wheel can rotate the satellite in the plane of the table so the camera points towards an image.
-- R2. When the camera is aligned toward the image, a photo is taken.
-- R3. The photo is stored on the OBC and sent by the transceiver to the base station.
+- 1-axis orientation control
+- image capturing
+- one way communication (send beacon signals)
+
+Additional resources to be worked on include:
+- system configuration files
+- simple two way communication
+- command and data handling
+- power generation and control
+- fault detections
+- fault responses
+- multi-axis orientation control
 
 ## Mock-Sat Repository Layout
 
 ### Data Folder
+This folder contains all images and text data on board the Moc-Sat. It is broken down into data that is to be sent out via the communications system, and data that is being stored either for testing
 
 ### Docs Folder
+This folder contains general information and documentation regarding the moc-sat. This includes datasheets and papers that provide some additional theory behind the moc-sat.
 
 ### Firmware Folder
+This folder contains all software to be put on seperate Arduino and STM32 microcontrollers that implement the different systems available to the moc-sat such as the communications system and the attitude determination and control system.
 
 ### Hardware Folder
+This folder contains all hardware files, pinout, and wiring diagrams required to build the moc-sat systems.
+
+### Media Folder
+This folder contains all images used within this repository.
 
 ### SRC (Source) Folder
+This folder contains all code written for the moc-sat on the raspberry pi. This includes python implementations for all sub-sytems and the actuall mock-sat itself.
 
+### Tasks Folder
+This folder contains all the tasks that the satellite is to perform. See the README instructions in the folder for creating new and how to use them!
 
 # Getting Started
 Below are the following steps to setup the software and hardware of the mock-sat.
@@ -55,23 +74,22 @@ cd mock-sat/
 python3 -m venv moc-sat-venv
 ```
 
-3. Activate the virtual environment.
+3. Activate the virtual environment and install all of the required packages.
 
 - a. If you are on MacOS or Raspberry Pi (Linux):
 ```
 source moc-sat-venv/bin/activate
+moc-sat-venv/bin/python3 -m pip install --upgrade pip
+moc-sat-venv/bin/pip3 install -r requirements.txt
 ```
 
 - b. If you are developing on Windows:
 ```
 source moc-sat-venv/Scripts/activate
+moc-sat-venv/Scripts/python3 -m pip install --upgrade pip
+moc-sat-venv/Scripts/pip3 install -r requirements.txt
 ```
 
-4. Install all of the required packages.
-```
-moc-sat-venv/bin/python3 -m pip install --upgrade pip
-moc-sat-venv/bin/pip3 install -r requirements.txt
-```
 
 ## Hardware Setup
 The following hardware is required:
