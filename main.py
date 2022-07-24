@@ -1,5 +1,4 @@
 import importlib
-from src.obc.taskmanager import TaskManager
 from src.comms.radio import RF24
 from colorama import Fore
 from datetime import datetime
@@ -24,9 +23,9 @@ def print_boot_message(msg:str):
 def print_fatal_error(msg:str):
     print(Fore.RED+msg+Fore.WHITE)
 
-
 def main():
     print_header()
+
     print_boot_message('booting up mock-sat')
     try:
         from src.common.satellite import mock_sat
@@ -34,12 +33,17 @@ def main():
         print_fatal_error('! FAILED TO BOOT !')
         raise e
 
-    print_boot_message('booting up OBC')
-    mock_sat.obc = TaskManager(debug=False)
+    print_boot_message('booting up on-board computer')
+    try:
+        from src.obc.taskmanager import TaskManager
+        mock_sat.obc = TaskManager(debug=False)
+    except Exception as e:
+        print_fatal_error('! FAILED TO OPEN OBC !')
+        raise e
 
     print_boot_message('setting up satellite system resources')
     print('\t     └── comms')
-    radio = RF24()
+    radio = RF24(uid=0)
     mock_sat.comms = radio
 
     print_boot_message('loading tasks...')
