@@ -22,7 +22,7 @@ class Arduino:
     will have access to all methods defined here.
     """
 
-    def __init__(self, uid, port='/dev/ttyACM0', baud=115200, timeout=10) -> None:
+    def __init__(self, port='/dev/ttyACM0', baud=115200, start_marker='<', end_marker='>', timeout=10) -> None:
         '''serial parameters'''
         try:
             self.ser = serial.Serial(port=port, baudrate=baud, timeout=timeout, rtscts=True)
@@ -54,7 +54,7 @@ class Arduino:
         '''
 
         stringWithMarkers = self._start_marker
-        stringWithMarkers += data
+        stringWithMarkers += string
         stringWithMarkers += self._end_marker
         count = 0
         self.ser.flushOutput()
